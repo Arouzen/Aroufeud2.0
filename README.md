@@ -1,2 +1,2 @@
 # Aroufeud2.0
-Java wordfeud-bot
+Java wordfeud-bot (Swedish)
