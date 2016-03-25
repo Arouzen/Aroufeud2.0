@@ -2,6 +2,8 @@
  */
 package objects;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -9,10 +11,10 @@ import org.json.JSONObject;
  *
  * @author arouz
  */
-public final class Game {
+public final class Game implements Serializable {
 
     Board board;
-    
+
     int end_game;
     long created;
 
@@ -24,7 +26,7 @@ public final class Game {
     int enemy_position;
     String enemy_username;
 
-    String[] rack;
+    ArrayList<String> rack;
 
     int ruleset;
     int current_player;
@@ -59,10 +61,10 @@ public final class Game {
     }
 
     public void setRack(JSONArray rack) {
-        String[] tmpRack = new String[rack.length()];
+        ArrayList<String> tmpRack = new ArrayList<>();
         int i = 0;
         for (Object letter : rack) {
-            tmpRack[i] = String.valueOf(letter);
+            tmpRack.add(String.valueOf(letter).toLowerCase());
             i++;
         }
         this.rack = tmpRack;
@@ -104,7 +106,7 @@ public final class Game {
         return enemy_username;
     }
 
-    public String[] getRack() {
+    public ArrayList<String> getRack() {
         return rack;
     }
 

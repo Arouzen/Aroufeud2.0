@@ -7,6 +7,7 @@ package wordtrie;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import objects.Word;
 
 public class TrieNode {
 
@@ -72,6 +73,7 @@ public class TrieNode {
     protected void addWord(String word, int totScore, HashMap<Character, Integer> charScores) {
         isLeaf = false;
 
+        
         // Swedish character support
         int charPos;
         switch (word.charAt(0)) {
@@ -132,21 +134,23 @@ public class TrieNode {
      *
      * @return
      */
-    protected List getWords() {
+    protected List<Word> getWords(ArrayList<String> rack) {
         //Create a list to return
-        List list = new ArrayList();
+        List<Word> list = new ArrayList();
 
         //If this node represents a word, add it to list as score:word
         if (isWord) {
-            list.add(wordScore + ":" + toString());
+            list.add(new Word(toString(), wordScore));
         }
 
-        //If any children
+        //If any children, recursive call
         if (!isLeaf) {
             //Add any words belonging to any children
             for (TrieNode child : children) {
-                if (child != null) {
-                    list.addAll(child.getWords());
+                if (child != null && rack.contains(String.valueOf(child.character))) {
+                    ArrayList<String> tmpRack = rack;
+                    tmpRack.remove(String.valueOf(child.character));
+                    list.addAll(child.getWords(tmpRack));
                 }
             }
         }

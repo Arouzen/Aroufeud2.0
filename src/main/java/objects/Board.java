@@ -2,6 +2,7 @@
  */
 package objects;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import org.json.JSONArray;
 
@@ -9,7 +10,7 @@ import org.json.JSONArray;
  *
  * @author arouz
  */
-public class Board {
+public class Board implements Serializable {
 
     ArrayList<ArrayList<Tile>> board;
 
@@ -47,5 +48,13 @@ public class Board {
             }
             System.out.println("");
         }
+    }
+    
+    public ArrayList<ArrayList<Tile>> getBoard() {
+        return this.board;
+    }
+
+    public Tile getTile(int column, int row) {
+        return this.board.get(column).get(row);
     }
 }

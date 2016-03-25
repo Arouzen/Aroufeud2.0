@@ -2,11 +2,13 @@
  */
 package objects;
 
+import java.io.Serializable;
+
 /**
  *
  * @author arouz
  */
-public class Tile {
+public class Tile implements Serializable {
 
     private int x;
     private int y;

@@ -76,27 +76,4 @@ public class Aroufeud {
         
         return gameList;
     }
-
-    public void generateWordTrie() {
-        long startTime = System.currentTimeMillis();
-        File ordlista = new File("wordlist.txt");
-        WordTrie trie = new WordTrie();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(ordlista), "UTF8"))) {
-            for (String line; (line = br.readLine()) != null;) {
-                if (!line.startsWith("#")) {
-                    trie.addWord(line.toLowerCase());
-                }
-            }
-        } catch (IOException ex) {
-            System.out.println("wordlist.txt wasn't found.");
-        } finally {
-            long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-            System.out.println("Trie generated in: " + totalTime + "ms.");
-        }
-        List list = trie.getWords("aba");
-        for (int i = 0; i < list.size(); i++) {
-            System.out.println(list.get(i));
-        }
-    }
 }
