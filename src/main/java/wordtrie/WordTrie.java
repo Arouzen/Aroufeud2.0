@@ -1,4 +1,4 @@
-package net.arouz.aroufeud;
+package wordtrie;
 
 /**
  *

@@ -1,4 +1,4 @@
-package net.arouz.aroufeud;
+package managers;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -13,8 +13,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
@@ -107,7 +105,10 @@ public class HTTPManager {
         post.addHeader("Connection", "Keep-Alive");
         post.addHeader("Content-Type", "application/json");
         post.addHeader("Accept-Encoding", "gzip");
-        post.setEntity(entity);
+        // Don't set entity if content is empty
+        if (entity.getContentLength() > 0) {
+            post.setEntity(entity);
+        }
         post.setProtocolVersion(new ProtocolVersion("HTTP", 1, 1));
         return post;
     }

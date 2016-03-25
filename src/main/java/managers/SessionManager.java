@@ -1,4 +1,4 @@
-package net.arouz.aroufeud;
+package managers;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -18,18 +18,27 @@ public class SessionManager {
         httpManager = new HTTPManager();
     }
 
-    public JSONObject doLogin(String email, String pass) throws Exception {
+    public boolean doLogin(String email, String pass) throws Exception {
         String jsonData = "{"
                 + "\"password\": \"" + encryptPassword(pass) + "\","
                 + "\"email\": \"" + email + "\""
                 + "}";
-        
-        System.out.println(jsonData);
-        return httpManager.postJson("/user/login/email/", jsonData);
+        JSONObject response = httpManager.postJson("/user/login/email/", jsonData);
+
+        if (response.get("status").equals("success")) {
+            return true;
+        } else {
+            System.out.println(((JSONObject) response.get("content")).get("type"));
+            return false;
+        }
     }
-    
-    public JSONObject getGames() throws Exception {
-        return httpManager.postJson("/user/games/", "");
+
+    public JSONObject getStatus() throws Exception {
+        return httpManager.postJson("/user/status/", "");
+    }
+
+    public JSONObject getGameDetails(String ids) throws Exception {
+        return httpManager.postJson("/games/" + ids, "");
     }
 
     private static String encryptPassword(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {
