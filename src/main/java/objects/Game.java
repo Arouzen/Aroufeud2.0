@@ -13,7 +13,7 @@ import org.json.JSONObject;
  */
 public final class Game implements Serializable {
 
-    Board board;
+    private final Board board;
 
     int end_game;
     long created;
@@ -26,7 +26,7 @@ public final class Game implements Serializable {
     int enemy_position;
     String enemy_username;
 
-    ArrayList<String> rack;
+    private ArrayList<String> rack;
 
     int ruleset;
     int current_player;
@@ -61,6 +61,7 @@ public final class Game implements Serializable {
     }
 
     public void setRack(JSONArray rack) {
+        
         ArrayList<String> tmpRack = new ArrayList<>();
         int i = 0;
         for (Object letter : rack) {
@@ -107,7 +108,7 @@ public final class Game implements Serializable {
     }
 
     public ArrayList<String> getRack() {
-        return rack;
+        return new ArrayList<>(rack);
     }
 
     public int getRuleset() {

@@ -2,21 +2,32 @@
  */
 package objects;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author arouz
  */
 public class Word implements Comparable {
 
-    ArrayList<Tile> placedTiles;
-    String word;
-    int score;
+    private Tile anchorTile;
+    private int limit;
+    private String word;
+    private int score;
 
     public Word(String word, int score) {
         this.word = word;
         this.score = score;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public void setAnchorTile(Tile anchorTile) {
+        this.anchorTile = anchorTile;
     }
 
     public String getWord() {
@@ -43,7 +54,11 @@ public class Word implements Comparable {
 
     @Override
     public String toString() {
-        return "Word{" + "word=" + word + ", score=" + score + '}';
+        return "Word{word=" + word + ", score=" + score + ", anchorTile=" + anchorTile + ", limit=" + limit + "'}'";
+    }
+
+    public Tile getAnchorTile() {
+        return anchorTile;
     }
 
 }

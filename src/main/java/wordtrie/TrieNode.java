@@ -63,20 +63,19 @@ public class TrieNode {
 
     /**
      * Adds a word to this node. This method is called recursively and adds
-     * child nodes for each successive letter in the word, therefore recursive
+     * child nodes for each successive letter in the word, in other words recursive
      * calls will be made with partial words.
      *
      * @param word the word to add
      * @param totScore word score
-     * @param charScores hashmap with character scores
+     * @param charScores hashmap with character score values
      */
     protected void addWord(String word, int totScore, HashMap<Character, Integer> charScores) {
         isLeaf = false;
 
-        
-        // Swedish character support
         int charPos;
         switch (word.charAt(0)) {
+            // Hardcoded positions for swedish special characters
             case 'å':
                 charPos = 26;
                 break;
@@ -87,6 +86,7 @@ public class TrieNode {
                 charPos = 28;
                 break;
             default:
+                // Regular english non-special characters node positions
                 charPos = word.charAt(0) - 'a';
                 break;
         }
@@ -125,31 +125,57 @@ public class TrieNode {
      * @return
      */
     protected TrieNode getNode(char c) {
-        return children[c - 'a'];
+        int charPos;
+        switch (c) {
+            // Hardcoded positions for swedish special characters
+            case 'å':
+                charPos = 26;
+                break;
+            case 'ä':
+                charPos = 27;
+                break;
+            case 'ö':
+                charPos = 28;
+                break;
+            default:
+                // Regular english non-special characters node positions
+                charPos = c - 'a';
+                break;
+        }
+        if (charPos == -13) {
+            return null;
+        }
+        return children[charPos];
     }
 
     /**
-     * Returns a List of String objects which are lower in the hierarchy that
-     * this node.
+     * Returns a List of String objects which are lower in the hierarchy than
+     * this node with the characters available in the rack.
      *
+     * @param rack
      * @return
      */
     protected List<Word> getWords(ArrayList<String> rack) {
         //Create a list to return
         List<Word> list = new ArrayList();
 
-        //If this node represents a word, add it to list as score:word
+        //If this node represents a word, add it to list as a Word object
         if (isWord) {
             list.add(new Word(toString(), wordScore));
         }
 
-        //If any children, recursive call
+        //If current node has any children, recursive calls will be made to fetch the words that can be formed with our rack
         if (!isLeaf) {
-            //Add any words belonging to any children
+            // Iterate all node children
             for (TrieNode child : children) {
+                // Try to fetch words which are lower in the hierarchy than the current iterated child with only characters from our rack
                 if (child != null && rack.contains(String.valueOf(child.character))) {
-                    ArrayList<String> tmpRack = rack;
+                    // Success! Found a valid child that represents a character in our rack
+                    // Create a copy of our rack to eliminate side-effect for other iterations
+                    ArrayList<String> tmpRack = (ArrayList<String>) rack.clone();
+                    // Remove our used character from the temporary rack
                     tmpRack.remove(String.valueOf(child.character));
+                    // Keep going deeper in the recursive function with our temporary rack
                     list.addAll(child.getWords(tmpRack));
                 }
             }

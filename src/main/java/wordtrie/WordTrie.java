@@ -39,58 +39,86 @@ public class WordTrie {
     }
 
     /**
-     * Get the words in the Trie with the given prefix
+     * Fetch words in the Trie with the given prefix and a selection of
+     * characters that can be used represented by a ArrayList of characters (a
+     * rack)
      *
      * @param prefix
-     * @return a List containing Word objects containing the words and scores in
-     * the Trie with the given left-partial-word prefix.
+     * @param rack
+     * @return a List with Word objects containing the string representation of
+     * a word and its basic unmultiplied score from the Trie with the given
+     * starting word prefix.
      */
     public List<Word> getWords(String prefix, ArrayList<String> rack) {
-        //Find the node which represents the last letter of the prefix
+        // Find the node which represents the last letter of the prefix
         TrieNode lastNode = root;
         for (int i = 0; i < prefix.length(); i++) {
             lastNode = lastNode.getNode(prefix.toLowerCase().charAt(i));
 
-            //If no node matches, then no words exist, return empty list
+            //If no node matches in our pursuit of the last node, then no words may be formed with this prefix, so return empty list. In other words: don't continue
             if (lastNode == null) {
                 return new ArrayList<>();
             }
         }
 
-        //Return the words which eminate from the last node
+        //Success! Return the words which is lower in the hierarchy from the last node in the prefix with our given rack
         return lastNode.getWords(rack);
     }
 
-    public ArrayList<String> leftPartialWords(ArrayList<String> rack, int limit, String endTile) {
-        // Helper function. Start at root node, start with empty partWord
-        return leftPartialWords(root, rack, "", limit, endTile);
+    /**
+     * Generates valid prefixes that may form a word with our given rack (helper
+     * function)
+     *
+     * @param rack
+     * @param limit
+     * @param endTile
+     * @return
+     */
+    public ArrayList<String> generateValidPrefixes(ArrayList<String> rack, int limit, char endTile) {
+        // Helper function. Start at root node, start with empty partWord, start with empty list to add prefixes to.
+        return generateValidPrefixes(root, rack, "", limit, endTile);
     }
 
-    public ArrayList<String> leftPartialWords(TrieNode node, ArrayList<String> rack, String partWord, int limit, String endTile) {
-        // Create copy of rack
-        ArrayList<String> tmpRack;
-        // Create return list
-        ArrayList<String> partialWords = new ArrayList<>();
-
-        if (limit == 0) {
-            // Reached limit. partWord will be our left partial word only if the partWord + our tile returns a node that is not null
-            if (node.getNode(endTile.charAt(0)) != null) {
-                partialWords.add(partWord + endTile);
-            }
-        } else {
-            // Limit not yet reached, keep iterating the rack
-            for (String rackTile : rack) {
-                tmpRack = (ArrayList<String>) rack.clone();
-                tmpRack.remove(rackTile);
-                // Check if partWord + rackTile will form more valid partialWords
-                TrieNode nextNode = node.getNode(rackTile.toLowerCase().charAt(0));
+    /**
+     * Generates valid prefixes that may form a word with our given rack
+     * (recursive function) The prefix must be a maximum of limit long, and end
+     * with the character represented by endChar.
+     *
+     * @param curNode
+     * @param rack
+     * @param curPrefix
+     * @param endChar
+     * @param prefixWords
+     * @param limit
+     * @return
+     */
+    public ArrayList<String> generateValidPrefixes(TrieNode curNode, ArrayList<String> rack, String curPrefix, int limit, char endChar) {
+        ArrayList<String> prefixWords = new ArrayList<>();
+        // Only continue iterating rack and going deeper into recursive function while limit is higher than zero
+        if (limit > 0) {
+            // Iteratate the rack
+            for (String rackChar : rack) {
+                // Clone our rack and remove our current rackChar from it
+                ArrayList<String> tmpRack = (ArrayList<String>) rack.clone();
+                tmpRack.remove(rackChar);
+                // Check if partWord + rackTile may form more valid partialWords
+                TrieNode nextNode = curNode.getNode(rackChar.charAt(0));
                 if (nextNode != null) {
-                    // Go deeper! Replace node with the node we just checked exists, add rackTile to partWord, decrease limit by 1, replace rack with tmpRack
-                    partialWords.addAll(leftPartialWords(nextNode, tmpRack, partWord+rackTile, limit - 1, endTile));
+                    System.out.println(curNode.getNode(rackChar.charAt(0)).toString());
+                    // Success! Go deeper! 
+                    // Replace node with the node we just checked exists, add rackTile to partWord, decrease limit by 1, replace rack with tmpRack
+
+                    // Check if nextNode has the endChar as a valid child, if yes; Valid prefix found and gets added to prefixWords
+                    if (nextNode.getNode(endChar) != null) {
+                        if (!prefixWords.contains(nextNode.toString())) {
+                            prefixWords.add(nextNode.toString());
+                        }
+                    }
+                    prefixWords.addAll(generateValidPrefixes(nextNode, tmpRack, curPrefix + rackChar, limit - 1, endChar));
                 }
             }
         }
-        return partialWords;
+        return prefixWords;
     }
 
     /**
@@ -116,7 +144,8 @@ public class WordTrie {
                 }
             }
         } catch (IOException ex) {
-            System.out.println("charlist.txt wasn't found.");
+            ex.printStackTrace();
+            System.out.println(language + "_charlist.txt wasn't found.");
         }
         return charMap;
     }

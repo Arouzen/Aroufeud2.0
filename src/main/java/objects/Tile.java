@@ -45,4 +45,9 @@ public class Tile implements Serializable {
     public void setTW(boolean TW) {
         this.TW = TW;
     }
+
+    @Override
+    public String toString() {
+        return "Tile{" + "x=" + x + ", y=" + y + ", letter=" + letter + ", TW=" + TW + '}';
+    }
 }

@@ -58,60 +58,85 @@ public class GameManager {
         // Iterate board
         for (int row = 0; row < 15; row++) {
             for (int column = 0; column < 15; column++) {
-                ArrayList<String> rack = game.getRack();
+                ArrayList<String> rack = (ArrayList<String>) game.getRack();
 
                 // Find non empty tiles
                 if (!game.getBoard().getTile(column, row).getLetter().equals("_")) {
-                    // If there exists a non empty tile left of this tile, this tile is already a part of that tile's partialword
-                    // Continue only if the tile left of this tile is empty and the tile is not on column position 0
-                    if (column > 0 && game.getBoard().getTile(column - 1, row).getLetter().equals("_")) {
-                        int limit = 0;
-                        int tmpColumn = column;
-                        // Check how many empty tiles there exists left of this tile. This number will be the limit. The limit can only be as high as tiles in the rack.
-
-                        while (tmpColumn > 0 && limit <= rack.size()) {
-                            tmpColumn--;
-                            if (game.getBoard().getTile(tmpColumn, row).getLetter().equals("_")) {
-                                limit++;
-                            } else {
-                                break;
+                    // Count empty tiles left of our anchor tile, this will be the limit of our prefix
+                    int limit = 0;
+                    boolean alreadyUsed = false;
+                    // Check if there is a wall left of our anchor tile, if yes then limit has to be 0. No prefix!
+                    if (column != 0) {
+                        // If there exists a non empty tile left of this tile, this tile is already a part of that tile's partialword. SKIP THIS ANCHOR TILE!
+                        if (!game.getBoard().getTile(column - 1, row).getLetter().equals("_")) {
+                            // This tile is already a part of another already calculated move! Flagged!
+                            alreadyUsed = true;
+                        } else {
+                            // Keep moving left (decreasing tmpColumn by one) until we hit a non empty tile or the wall
+                            // After each successful move, increase limit by one
+                            // The limit can only be as high as tiles in the rack.
+                            int tmpColumn = column;
+                            while (tmpColumn > 0 && limit < rack.size()) {
+                                tmpColumn--;
+                                if (game.getBoard().getTile(tmpColumn, row).getLetter().equals("_")) {
+                                    limit++;
+                                } else {
+                                    break;
+                                }
                             }
                         }
+                    }
 
-                        // Find all letters after tile, namely the rightPartialWord
-                        tmpColumn = column;
-                        String rightPartialWord = "";
+                    // Check our flag. Continue if not flagged.
+                    if (!alreadyUsed) {
+                        // Find all letters after our anchor tile
+                        int tmpColumn = column;
+                        String anchorLetter = game.getBoard().getTile(tmpColumn, row).getLetter();
+                        String lettersAfterAnchor = "";
+                        // Make sure we dont hit the right-side wall
                         while (tmpColumn < 14) {
                             tmpColumn++;
                             if (!game.getBoard().getTile(tmpColumn, row).getLetter().equals("_")) {
-                                rightPartialWord += game.getBoard().getTile(tmpColumn, row).getLetter();
+                                lettersAfterAnchor += game.getBoard().getTile(tmpColumn, row).getLetter();
                             } else {
+                                // If we hit empty tile, break loop
                                 break;
                             }
                         }
 
-                        ArrayList<String> leftPartialWordMoves = calculateLeftPartialWords(rack, limit, game.getBoard().getTile(column, row), trie);
-                        for (String leftPartialWord : leftPartialWordMoves) {
+                        ArrayList<String> prefixes = fetchValidPrefixesFromTrie(rack, limit, game.getBoard().getTile(column, row), trie);
+                        for (String prefix : prefixes) {
                             // Add everything in rightPartialWord + current tile to our rack
                             rack = game.getRack();
-                            for (int i = 0; i < rightPartialWord.length(); i++) {
-                                rack.add(String.valueOf(rightPartialWord.charAt(i)));
+                            for (int i = 0; i < lettersAfterAnchor.length(); i++) {
+                                rack.add(String.valueOf(lettersAfterAnchor.charAt(i)));
                             }
-                            rack.add(game.getBoard().getTile(column, row).getLetter());
+                            rack.add(anchorLetter);
 
                             // Remove used letters from rack
-                            String usedLetters = leftPartialWord + rightPartialWord;
-                            for (int i = 0; i < usedLetters.length(); i++) {
-                                rack.remove(String.valueOf(usedLetters.charAt(i)));
+                            String fullPrefix = prefix + anchorLetter + lettersAfterAnchor;
+                            for (int i = 0; i < fullPrefix.length(); i++) {
+                                rack.remove(String.valueOf(fullPrefix.charAt(i)));
                             }
 
-                            List<Word> words = trie.getWords(usedLetters, rack);
+                            List<Word> words = trie.getWords(fullPrefix, rack);
                             Collections.sort(words);
                             for (Word word : words) {
+                                word.setAnchorTile(game.getBoard().getTile(column, row));
+                                word.setLimit(prefix.length());
+                                // Capitalize Nth character in word (meaning capitalize our anchor tile)
+                                String tmpWord = "";
+                                for (int i = 0; i < word.getWord().length(); i++) {
+                                    if (i == word.getLimit()) {
+                                        tmpWord += word.getWord().substring(i, i + 1).toUpperCase();
+                                    } else {
+                                        tmpWord += word.getWord().substring(i, i + 1);
+                                    }
+                                }
+                                word.setWord(tmpWord);
                                 System.out.println(word);
                             }
                         }
-
                     }
                 }
             }
@@ -120,8 +145,8 @@ public class GameManager {
         game.getBoard().printBoard();
     }
 
-    private static ArrayList<String> calculateLeftPartialWords(ArrayList<String> rack, int limit, Tile endTile, WordTrie trie) {
-        return trie.leftPartialWords(rack, limit, endTile.getLetter().toLowerCase());
+    private static ArrayList<String> fetchValidPrefixesFromTrie(ArrayList<String> rack, int limit, Tile endTile, WordTrie trie) {
+        return trie.generateValidPrefixes(rack, limit, endTile.getLetter().toLowerCase().charAt(0));
     }
 
     public void parseGameList(ArrayList<Game> gameList) {
