@@ -47,7 +47,7 @@ public final class Board implements Serializable {
         this.board = newBoard;
     }
 
-    public void rotateBoard() {
+    public void rotateBoard(boolean clockwise) {
         int m = board.size();
 
         ArrayList<ArrayList<Tile>> rotBoard = new ArrayList<>();
@@ -63,11 +63,16 @@ public final class Board implements Serializable {
         // Fill rotBoard with the values from board but rotated
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < m; j++) {
-                rotBoard.get(j).get(m - 1 - i).setLetter(getTile(i, j).getLetter());
+                if (clockwise) {
+                    rotBoard.get(j).get(m - 1 - i).setLetter(getTile(i, j).getLetter());
+                } else {
+                    rotBoard.get(i).get(j).setLetter(getTile(j, m - i - 1).getLetter());
+                }
             }
         }
 
         board = rotBoard;
+        updatePowers();
     }
 
     public void printBoard() {

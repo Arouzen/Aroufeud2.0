@@ -55,29 +55,36 @@ public class GameManager {
         WordTrie trie = generateWordTrie("en");
 
         for (Game game : gameList) {
+            long totalTime = 0;
             boolean rotated = false;
+            long startTime = System.currentTimeMillis();
             ArrayList<Move> validMoves = fetchHorizontalMoves(game, trie, charScores, rotated);
+            long endTime = System.currentTimeMillis();
+
+            totalTime += endTime - startTime;
 
             // Rotate board, solve vertical solutions with same function
-            game.getBoard().rotateBoard();
-            game.getBoard().rotateBoard();
-            game.getBoard().rotateBoard();
-            game.getBoard().updatePowers();
-            game.getBoard().printBoard();
+            game.getBoard().rotateBoard(false);
 
+            // Fetch 
             rotated = true;
-            long startTime = System.currentTimeMillis();
-            validMoves.addAll(fetchHorizontalMoves(game, trie, charScores, rotated));
-            long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
+            startTime = System.currentTimeMillis();
+            ArrayList<Move> moves = fetchHorizontalMoves(game, trie, charScores, rotated);
+            endTime = System.currentTimeMillis();
+
+            totalTime += endTime - startTime;
             System.out.println("Moves generated in: " + totalTime + "ms.");
+            validMoves.addAll(moves);
+
             Collections.sort(validMoves);
 
             System.out.println("Valid moves: ");
             for (Move move : validMoves) {
                 System.out.println(move);
             }
-
+            
+            // Rotate back
+            game.getBoard().rotateBoard(true);
         }
     }
 
@@ -206,16 +213,6 @@ public class GameManager {
                             // Returns null if a invalid word was formed on the board with this move.
                             Move move = validateAndCalcMoveScore(word, game.getBoard(), charScores, trie, rotated);
                             if (move != null) {
-                                // Capitalize the Nth character of the word (N = position of anchor tile) for print purposes
-                                String tmpWord = "";
-                                for (int i = 0; i < move.getWord().getWord().length(); i++) {
-                                    if (i == move.getWord().getAnchorPosition()) {
-                                        tmpWord += move.getWord().getWord().substring(i, i + 1).toUpperCase();
-                                    } else {
-                                        tmpWord += move.getWord().getWord().substring(i, i + 1);
-                                    }
-                                }
-                                move.getWord().setWord(tmpWord);
                                 horizontalMoves.add(move);
                             }
                         }
@@ -359,16 +356,30 @@ public class GameManager {
         if (!moveMade) {
             return null;
         }
+        
+        // Fetch start and end location of the move. 
 
         // Move column to first character of the full word
-        column = column - left.length();
-        // Save tile
-        Tile startTile = new Tile(row, column);
+        column = column - word.getWord().length();
+        Tile startTile;
+        // If we are rotated, the column needs additional work
+        if (rotated) {
+            // We want to rotate the tile clockwise
+            // New column = 14 - row
+            // New row = column
+            startTile = new Tile(column, 14-row);
+        } else {
+            startTile = new Tile(row, column);
+        }
 
         // Move column to the last character of the full word
         column = column + word.getWord().length() - 1;
-        // Save tile
-        Tile endTile = new Tile(row, column);
+        Tile endTile;
+        if (rotated) {
+            endTile = new Tile(column, 14-row);
+        } else {
+            endTile = new Tile(row, column);
+        }
 
         return new Move(word, moveScore, startTile, endTile);
     }
