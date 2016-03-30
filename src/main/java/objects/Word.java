@@ -6,24 +6,28 @@ package objects;
  *
  * @author arouz
  */
-public class Word implements Comparable {
+public class Word {
 
     private Tile anchorTile;
-    private int limit;
+    private int anchorPosition;
     private String word;
-    private int score;
 
-    public Word(String word, int score) {
+    public Word(String word) {
         this.word = word;
-        this.score = score;
     }
 
-    public int getLimit() {
-        return limit;
+    public Word(Word word) {
+        this.word = word.getWord();
+        this.anchorTile = new Tile(word.getAnchorTile());
+        this.anchorPosition = word.getAnchorPosition();
     }
 
-    public void setLimit(int limit) {
-        this.limit = limit;
+    public int getAnchorPosition() {
+        return anchorPosition;
+    }
+
+    public void setAnchorPosition(int anchorPosition) {
+        this.anchorPosition = anchorPosition;
     }
 
     public void setAnchorTile(Tile anchorTile) {
@@ -38,23 +42,9 @@ public class Word implements Comparable {
         this.word = word;
     }
 
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    @Override
-    public int compareTo(Object cmp) {
-        int compareScore = ((Word) cmp).getScore();
-        return compareScore - getScore();
-    }
-
     @Override
     public String toString() {
-        return "Word{word=" + word + ", score=" + score + ", anchorTile=" + anchorTile + ", limit=" + limit + "'}'";
+        return "Word{word=" + word + ", anchorTile=" + anchorTile + ", anchorPos=" + anchorPosition + "'}'";
     }
 
     public Tile getAnchorTile() {

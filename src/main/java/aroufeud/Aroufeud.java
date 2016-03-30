@@ -1,17 +1,9 @@
 package aroufeud;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
-import managers.GameManager;
 import managers.SessionManager;
 import objects.Game;
 import org.json.JSONArray;
-import wordtrie.WordTrie;
 import org.json.JSONObject;
 
 /**

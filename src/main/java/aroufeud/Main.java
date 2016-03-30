@@ -1,5 +1,3 @@
-/*
- */
 package aroufeud;
 
 import java.util.ArrayList;

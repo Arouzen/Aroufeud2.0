@@ -5,7 +5,6 @@ package wordtrie;
  * @author arouz
  */
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import objects.Word;
 
@@ -63,14 +62,12 @@ public class TrieNode {
 
     /**
      * Adds a word to this node. This method is called recursively and adds
-     * child nodes for each successive letter in the word, in other words recursive
-     * calls will be made with partial words.
+     * child nodes for each successive letter in the word, in other words
+     * recursive calls will be made with partial words.
      *
      * @param word the word to add
-     * @param totScore word score
-     * @param charScores hashmap with character score values
      */
-    protected void addWord(String word, int totScore, HashMap<Character, Integer> charScores) {
+    protected void addWord(String word) {
         isLeaf = false;
 
         int charPos;
@@ -96,25 +93,11 @@ public class TrieNode {
             children[charPos].parent = this;
         }
 
-        totScore += charScores.get(word.charAt(0));
-
         if (word.length() > 1) {
-            children[charPos].addWord(word.substring(1), totScore, charScores);
+            children[charPos].addWord(word.substring(1));
         } else {
             children[charPos].isWord = true;
-            children[charPos].wordScore = totScore;
         }
-    }
-
-    /**
-     * Helper function for addWord(String word)
-     *
-     * @param word
-     * @param charScores
-     */
-    protected void addWord(String word, HashMap<Character, Integer> charScores) {
-        // Start recursive function with totScore set to zero
-        addWord(word, 0, charScores);
     }
 
     /**
@@ -142,9 +125,6 @@ public class TrieNode {
                 charPos = c - 'a';
                 break;
         }
-        if (charPos == -13) {
-            return null;
-        }
         return children[charPos];
     }
 
@@ -153,15 +133,16 @@ public class TrieNode {
      * this node with the characters available in the rack.
      *
      * @param rack
+     * @param suffixLimit
      * @return
      */
-    protected List<Word> getWords(ArrayList<String> rack) {
+    protected List<Word> getWords(ArrayList<String> rack, int suffixLimit) {
         //Create a list to return
         List<Word> list = new ArrayList();
 
         //If this node represents a word, add it to list as a Word object
         if (isWord) {
-            list.add(new Word(toString(), wordScore));
+            list.add(new Word(toString()));
         }
 
         //If current node has any children, recursive calls will be made to fetch the words that can be formed with our rack
@@ -171,12 +152,15 @@ public class TrieNode {
                 // Try to fetch words which are lower in the hierarchy than the current iterated child with only characters from our rack
                 if (child != null && rack.contains(String.valueOf(child.character))) {
                     // Success! Found a valid child that represents a character in our rack
-                    // Create a copy of our rack to eliminate side-effect for other iterations
-                    ArrayList<String> tmpRack = (ArrayList<String>) rack.clone();
+                    // Create a temporary duplicate list of our rack
+                    ArrayList<String> tmpRack = new ArrayList<>(rack);
                     // Remove our used character from the temporary rack
                     tmpRack.remove(String.valueOf(child.character));
-                    // Keep going deeper in the recursive function with our temporary rack
-                    list.addAll(child.getWords(tmpRack));
+                    // Keep going deeper in the recursive function with our temporary rack and with the limit decreased by 1
+                    // Only go deeper if the suffixLimit hasn't reached 0 yet though.
+                    if (suffixLimit > 0) {
+                        list.addAll(child.getWords(tmpRack, suffixLimit - 1));
+                    }
                 }
             }
         }
