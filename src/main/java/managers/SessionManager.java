@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
@@ -39,6 +40,16 @@ public class SessionManager {
 
     public JSONObject getGameDetails(String ids) throws Exception {
         return httpManager.postJson("/games/" + ids, "");
+    }
+
+    public JSONObject playMove(long gameId, int ruleset, JSONArray move, JSONArray word) throws Exception {
+        String jsonData = "{"
+                + "\"ruleset\": " + ruleset + ","
+                + "\"words\": " + word.toString() + ","
+                + "\"move\": " + move.toString() + ""
+                + "}";
+
+        return httpManager.postJson("/game/" + gameId + "/move/", jsonData);
     }
 
     private static String encryptPassword(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {

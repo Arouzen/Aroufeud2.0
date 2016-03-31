@@ -1,5 +1,7 @@
 package objects;
 
+import org.json.JSONArray;
+
 /**
  *
  * @author arouz
@@ -10,12 +12,13 @@ public class Move implements Comparable {
     private int score;
     private Tile starts;
     private Tile ends;
+    private JSONArray words;
+    private JSONArray tiles;
 
-    public Move(Word word, int score, Tile starts, Tile ends) {
+    public Move(Word word) {
         this.word = word;
-        this.score = score;
-        this.starts = starts;
-        this.ends = ends;
+        this.words = new JSONArray();
+        this.tiles = new JSONArray();
     }
 
     public Word getWord() {
@@ -28,6 +31,19 @@ public class Move implements Comparable {
 
     public void setScore(int score) {
         this.score = score;
+    }
+    
+    public void addTile(int row, int column, String letter) {
+        JSONArray tile = new JSONArray();
+        tile.put(column);
+        tile.put(row);
+        tile.put(letter.toUpperCase());
+        tile.put(false);
+        tiles.put(tile);
+    }
+    
+    public void addWord(String word) {
+        words.put(word.toUpperCase());
     }
 
     @Override
@@ -50,6 +66,14 @@ public class Move implements Comparable {
 
     public void setEnds(Tile ends) {
         this.ends = ends;
+    }
+    
+    public JSONArray getTiles() {
+        return tiles;
+    }
+    
+    public JSONArray getWords() {
+        return words;
     }
 
     @Override
