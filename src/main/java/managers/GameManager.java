@@ -117,6 +117,7 @@ public class GameManager {
         long startTime = System.currentTimeMillis();
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
         game.getBoard().rotateBoard(false);
+        //game.getBoard().printBoard();
         rotated = true;
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
         long endTime = System.currentTimeMillis();
@@ -174,14 +175,18 @@ public class GameManager {
             // Iterate all positions in board
             for (int row = 0; row < 15; row++) {
                 Runnable runnable = new Worker(game, row, rackWords, rotated, validMoves, trie, charScores, rack);
-                Callable<Object> c = Executors.callable(runnable);
-                callables.add(c);
+                callables.add(Executors.callable(runnable));
             }
 
             try {
                 pool.invokeAll(callables);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
+                if (rotated) {
+                    System.out.println("Vertical solutions found");
+                } else {
+                    System.out.println("Horizontal solutions found");
+                }
+            } catch (Exception ex) {
+                System.out.println("Something went wrong when invoking the callables.");
             }
         }
     }

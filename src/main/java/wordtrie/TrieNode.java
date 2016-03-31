@@ -25,6 +25,23 @@ public class TrieNode {
         isWord = false;
     }
 
+    @Override
+    public TrieNode clone() {
+        TrieNode newNode = new TrieNode();
+        newNode.children = deepCopyArray(this.children);
+        return newNode;
+    }
+
+    public TrieNode[] deepCopyArray(TrieNode[] origArray) {
+        TrieNode[] newArray = new TrieNode[origArray.length];
+        for (int i = 0; i < 29; i++) {
+            if (origArray[i] != null) {
+                newArray[i] = origArray[i].clone();
+            }
+        }
+        return newArray;
+    }
+
     /**
      * Constructor for child nodes.
      *
@@ -167,7 +184,7 @@ public class TrieNode {
             return parent.toString() + new String(new char[]{character});
         }
     }
- 
+
     // Return all children
     public ArrayList<TrieNode> getNodes() {
         ArrayList<TrieNode> nodes = new ArrayList<>();
@@ -178,11 +195,11 @@ public class TrieNode {
         }
         return nodes;
     }
-    
+
     public String getChar() {
         return String.valueOf(character);
     }
-    
+
     public void setChar(char character) {
         this.character = character;
     }

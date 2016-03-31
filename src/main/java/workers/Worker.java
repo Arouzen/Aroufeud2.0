@@ -32,7 +32,7 @@ public class Worker implements Runnable {
         this.rackWords = new ArrayList<>(rackWords);
         this.rotated = rotated;
         this.horizontalMoves = horizontalMoves;
-        this.trie = trie;
+        this.trie = trie;//new WordTrie(trie);
         this.charScores = charScores;
         this.rack = rack;
     }
@@ -158,8 +158,6 @@ public class Worker implements Runnable {
                 }
             }
         }
-        // Before we end, we signal that a row was complete by decreasing the latch
-        //latch.countDown();
     }
 
     private ArrayList<String> fetchValidPrefixesFromTrie(ArrayList<String> rack, Tile anchorTile, Board board, WordTrie trie) {
@@ -169,10 +167,6 @@ public class Worker implements Runnable {
     private Move validateAndCalcMoveScore(Word word, Board board, HashMap<Character, Integer> charScores, WordTrie trie, boolean rotated) {
         int moveScore = 0;
         Move move = new Move(word);
-
-        if (word.getAnchorTile().getColumn() == 4 && word.getAnchorTile().getRow() == 10 && word.getWord().equals("whap")) {
-            int y = 4;
-        }
 
         // We want to move to the first position of the word, so we place ourselves on the anchor tile and subtract the column by the anchorPosition
         int column = word.getAnchorTile().getColumn();
@@ -231,9 +225,6 @@ public class Worker implements Runnable {
             // We only want to iterate what we are trying to place right now, not what was already placed before, so only proceed if this tile is empty on the board
             if (board.getTile(row, column).getLetter().equals("_")) {
                 // Start with finding all connected letters above the character. Dont hit the upper wall.
-                if (word.getWord().equals("whap") && column == 4 && row == 10 && i == 0) {
-                    int y = 4;
-                }
                 moveMade = true;
                 int tmpRow = row;
                 String above = "";
