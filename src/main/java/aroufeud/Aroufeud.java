@@ -1,8 +1,6 @@
 package aroufeud;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import managers.SessionManager;
 import objects.Game;
 import org.json.JSONArray;

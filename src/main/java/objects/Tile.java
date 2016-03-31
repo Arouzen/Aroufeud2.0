@@ -12,11 +12,13 @@ public class Tile implements Serializable {
     private final int row;
     private String power;
     private String letter;
+    private boolean wildcard;
 
-    public Tile(int row, int column, String letter) {
+    public Tile(int row, int column, String letter, boolean wildcard) {
         this.column = column;
         this.row = row;
         this.letter = letter;
+        this.wildcard = wildcard;
     }
 
     public Tile(Tile anchorTile) {
@@ -24,6 +26,7 @@ public class Tile implements Serializable {
         this.row = anchorTile.getRow();
         this.letter = anchorTile.getLetter();
         this.power = anchorTile.getPower();
+        this.wildcard = anchorTile.isWildcard();
     }
 
     public Tile(int row, int column) {
@@ -55,6 +58,14 @@ public class Tile implements Serializable {
         this.letter = letter;
     }
 
+    public boolean isWildcard() {
+        return wildcard;
+    }
+
+    public void setWildcard(boolean wildcard) {
+        this.wildcard = wildcard;
+    }
+    
     @Override
     public String toString() {
         if (letter != null && power != null) {

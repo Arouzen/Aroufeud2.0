@@ -18,7 +18,7 @@ import wordtrie.WordTrie;
 public class Worker implements Runnable {
 
     private final Game game;
-    private final int row;
+    private final int curRow;
     private final ArrayList<String> rackWords;
     private final boolean rotated;
     private final Set<Move> horizontalMoves;
@@ -28,7 +28,7 @@ public class Worker implements Runnable {
 
     public Worker(Game game, int row, ArrayList<String> rackWords, boolean rotated, Set<Move> horizontalMoves, WordTrie trie, HashMap<Character, Integer> charScores, ArrayList<String> rack) {
         this.game = game;
-        this.row = row;
+        this.curRow = row;
         this.rackWords = new ArrayList<>(rackWords);
         this.rotated = rotated;
         this.horizontalMoves = horizontalMoves;
@@ -41,7 +41,7 @@ public class Worker implements Runnable {
     public void run() {
         for (int column = 0; column < 15; column++) {
             // Start by checking if the tile is empty or not
-            if (game.getBoard().getTile(row, column).getLetter().equals("_")) {
+            if (game.getBoard().getTile(curRow, column).getLetter().equals("_")) {
                 // This tile is available. Check if any of our rackWords can be placed on this start position.
                 // Dont hit any other letter, dont hit the right wall.
                 for (String rackWord : rackWords) {
@@ -54,22 +54,22 @@ public class Worker implements Runnable {
                         boolean valid = true;
                         boolean connected = false;
                         while (tmpColumn < 14 && i < rackWord.length()) {
-                            if (!game.getBoard().getTile(row, tmpColumn).getLetter().equals("_")) {
+                            if (!game.getBoard().getTile(curRow, tmpColumn).getLetter().equals("_")) {
                                 valid = false;
                                 break;
                             }
 
                             // Check so we dont hit the top wall
-                            if (row > 0 && !connected) {
+                            if (curRow > 0 && !connected) {
                                 // Check if this tile connects with a letter above it
-                                if (!game.getBoard().getTile(row - 1, tmpColumn).getLetter().equals("_")) {
+                                if (!game.getBoard().getTile(curRow - 1, tmpColumn).getLetter().equals("_")) {
                                     connected = true;
                                 }
                             }
-                            if (row < 14 && !connected) {
+                            if (curRow < 14 && !connected) {
                                 // Check so we dont hit the bottom wall
                                 // Check if this tile connects with a letter under it
-                                if (!game.getBoard().getTile(row + 1, tmpColumn).getLetter().equals("_")) {
+                                if (!game.getBoard().getTile(curRow + 1, tmpColumn).getLetter().equals("_")) {
                                     connected = true;
                                 }
                             }
@@ -82,7 +82,7 @@ public class Worker implements Runnable {
                             // Returns null if a invalid word was formed on the board with this move.
                             Word word = new Word(rackWord);
                             // Set anchor tile to the first character of the word
-                            word.setAnchorTile(new Tile(row, column));
+                            word.setAnchorTile(new Tile(curRow, column));
                             word.setAnchorPosition(0);
                             Move move = validateAndCalcMoveScore(word, game.getBoard(), charScores, trie, rotated);
                             if (move != null) {
@@ -98,7 +98,7 @@ public class Worker implements Runnable {
                 // Start by checking if this tile is already used before
                 // Only proceed if the tile left of this anchor tile is empty or the column is zero, otherwise this anchor tile is already a part of that tile's every fullPrefix.
 
-            } else if (column == 0 || game.getBoard().getTile(row, column - 1).getLetter().equals("_")) {
+            } else if (column == 0 || game.getBoard().getTile(curRow, column - 1).getLetter().equals("_")) {
                 // We found a anchor tile
                 // Find all connected letters to the right of our anchor tile
                 int tmpColumn = column;
@@ -106,8 +106,8 @@ public class Worker implements Runnable {
                 // Make sure we dont hit the right-side wall
                 while (tmpColumn < 14) {
                     tmpColumn++;
-                    if (!game.getBoard().getTile(row, tmpColumn).getLetter().equals("_")) {
-                        lettersAfterAnchor += game.getBoard().getTile(row, tmpColumn).getLetter();
+                    if (!game.getBoard().getTile(curRow, tmpColumn).getLetter().equals("_")) {
+                        lettersAfterAnchor += game.getBoard().getTile(curRow, tmpColumn).getLetter();
                     } else {
                         // If we hit empty tile, break loop
                         break;
@@ -117,7 +117,7 @@ public class Worker implements Runnable {
                 // Count successive free tiles after the last character in letterAfterAnchor on the board
                 int suffixLimit = 0;
                 while (tmpColumn < 14) {
-                    if (game.getBoard().getTile(row, tmpColumn).getLetter().equals("_")) {
+                    if (game.getBoard().getTile(curRow, tmpColumn).getLetter().equals("_")) {
                         suffixLimit++;
                         tmpColumn++;
                     } else {
@@ -126,7 +126,7 @@ public class Worker implements Runnable {
                 }
 
                 // Fetch all valid prefixes with our rack from the trie. Valid is defined as the prefix may form a word.
-                ArrayList<String> prefixes = fetchValidPrefixesFromTrie(rack, game.getBoard().getTile(row, column), game.getBoard(), trie);
+                ArrayList<String> prefixes = fetchValidPrefixesFromTrie(rack, game.getBoard().getTile(curRow, column), game.getBoard(), trie);
 
                 // Iterate the prefixes
                 for (String prefixWithRack : prefixes) {
@@ -145,7 +145,7 @@ public class Worker implements Runnable {
 
                     // Iterate the words
                     for (Word word : words) {
-                        word.setAnchorTile(game.getBoard().getTile(row, column));
+                        word.setAnchorTile(game.getBoard().getTile(curRow, column));
                         word.setAnchorPosition(prefixWithRack.split(":")[0].length() - 1);
                         // Calculate move score. Score can get very high if the move also creates words on the y axis with letters on the board.
                         // Also takes account of any multipliers on the board. 
@@ -169,6 +169,10 @@ public class Worker implements Runnable {
     private Move validateAndCalcMoveScore(Word word, Board board, HashMap<Character, Integer> charScores, WordTrie trie, boolean rotated) {
         int moveScore = 0;
         Move move = new Move(word);
+
+        if (word.getAnchorTile().getColumn() == 4 && word.getAnchorTile().getRow() == 10 && word.getWord().equals("whap")) {
+            int y = 4;
+        }
 
         // We want to move to the first position of the word, so we place ourselves on the anchor tile and subtract the column by the anchorPosition
         int column = word.getAnchorTile().getColumn();
@@ -210,12 +214,12 @@ public class Worker implements Runnable {
         if (!trie.isWord(word.getWord())) {
             return null;
         }
-        
+
         // Add word to move
         move.addWord(word.getWord());
 
         // Calculate the score of this word. Add it to moveScore.
-        moveScore += addScore(row, column - left.length(), true, word.getWord(), charScores, board);
+        moveScore += addScore(row, column - left.length(), true, word.getWord(), charScores, board, rack);
 
         // Move column to first character of the full word
         column = column - left.length();
@@ -227,11 +231,10 @@ public class Worker implements Runnable {
             // We only want to iterate what we are trying to place right now, not what was already placed before, so only proceed if this tile is empty on the board
             if (board.getTile(row, column).getLetter().equals("_")) {
                 // Start with finding all connected letters above the character. Dont hit the upper wall.
+                if (word.getWord().equals("whap") && column == 4 && row == 10 && i == 0) {
+                    int y = 4;
+                }
                 moveMade = true;
-
-                // Add tile to move.tiles
-                move.addTile(row, column, String.valueOf(word.getWord().charAt(i)));
-
                 int tmpRow = row;
                 String above = "";
                 while (tmpRow > 0) {
@@ -284,13 +287,14 @@ public class Worker implements Runnable {
                     if (!trie.isWord(yaxisWord)) {
                         return null;
                     }
-                    
+
                     // Add word to move
                     move.addWord(yaxisWord);
-                    
+
                     // A word was formed, and it's valid.
                     // Calculate the score of this word. Add it to moveScore.
-                    moveScore += addScore(row - above.length(), column, false, yaxisWord, charScores, board);
+                    moveScore += addScore(row - above.length(), column, false, yaxisWord, charScores, board, rack);
+
                 }
             } else {
                 // Make sure the letter on the board is the same as the character we tried to place. If not, invalid word, return null.
@@ -323,22 +327,43 @@ public class Worker implements Runnable {
             startTile = new Tile(row, column);
         }
 
-        // Move column to the last character of the full word
+        Tile curTile;
+        int wordIndex = 0;
+        // Add the tiles we are trying to place to the move
+        for (int col = startTile.getColumn(); col < startTile.getColumn() + word.getWord().length(); col++) {
+            // Rotate the tile counterclockwise if we need to
+            if (rotated) {
+                curTile = board.getTile(col, 14 - startTile.getRow());
+            } else {
+                curTile = board.getTile(row, col);
+            }
+            // Proceed if this col is empty on the board, in other words we are trying to place something here
+            if (curTile.getLetter().equals("_")) {
+                // Check if the wordIndex char exists in the rack, if not this has to be a wildcard
+                if (!rack.contains(String.valueOf(word.getWord().charAt(wordIndex)))) {
+                    move.addTile(curTile.getRow(), curTile.getColumn(), String.valueOf(word.getWord().charAt(wordIndex)), true);
+                } else {
+                    move.addTile(curTile.getRow(), curTile.getColumn(), String.valueOf(word.getWord().charAt(wordIndex)), false);
+                }
+            }
+            wordIndex++;
+        }
+        // Move to the rightmost character
         column = column + word.getWord().length() - 1;
         Tile endTile;
+        // Rotate the endTile back
         if (rotated) {
             endTile = new Tile(column, 14 - row);
         } else {
             endTile = new Tile(row, column);
         }
-
         move.setScore(moveScore);
         move.setStarts(startTile);
         move.setEnds(endTile);
         return move;
     }
 
-    public int addScore(int row, int column, boolean horizontal, String word, HashMap<Character, Integer> charScores, Board board) {
+    public int addScore(int row, int column, boolean horizontal, String word, HashMap<Character, Integer> charScores, Board board, ArrayList<String> rack) {
         int multiplier = 1;
         int totScore = 0;
         Tile curTile;
@@ -348,7 +373,15 @@ public class Worker implements Runnable {
             } else {
                 curTile = board.getTile(row + i, column);
             }
-            int charScore = charScores.get(word.charAt(i));
+            int charScore;
+
+            // If this is a move we are trying to place, and the tile insn't in the rack. It's a wildcard, thus 0 points.
+            if (curTile.getLetter().equals("_") && !rack.contains(String.valueOf(word.charAt(i)))) {
+                charScore = 0;
+            } else {
+                charScore = charScores.get(word.charAt(i));
+            }
+            
             // Only deal with powers if the tile is empty (in other words ensure that the power is not already used)
             if (curTile.getLetter().equals("_") && curTile.getPower() != null) {
                 if (curTile.getPower().equals("DW")) {
@@ -361,7 +394,10 @@ public class Worker implements Runnable {
                     charScore *= 3;
                 }
             }
-            totScore += charScore;
+            // Wildcards on the board always gives 0 score
+            if (!curTile.isWildcard()) {
+                totScore += charScore;
+            }
         }
         return totScore * multiplier;
     }

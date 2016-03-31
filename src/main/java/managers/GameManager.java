@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import objects.Board;
 import objects.Game;
 import objects.Move;
@@ -70,7 +68,10 @@ public class GameManager {
                 }
                 System.out.println("Type the index of the move you want me to play for you!");
                 int i = 0;
-                validMoves = validMoves.subList(0, 10);
+                // If over 10 valid moves, strip it down to 10
+                if (validMoves.size() >= 10) {
+                    validMoves = validMoves.subList(0, 10);
+                }
                 for (Move move : validMoves) {
                     System.out.println("[" + i + "] " + move.getWord().getWord() + " for " + move.getScore() + " points.");
                     i++;
@@ -157,7 +158,12 @@ public class GameManager {
                 int row = 7;
                 int column = 7;
                 for (char character : word.toCharArray()) {
-                    move.addTile(row, column, String.valueOf(character));
+                    // If the rack doesn't contain the character, it's a wildcard character
+                    if (!rack.contains(String.valueOf(character))) {
+                        move.addTile(row, column, String.valueOf(character), true);
+                    } else {
+                        move.addTile(row, column, String.valueOf(character), false);
+                    }
                     column++;
                 }
                 validMoves.add(move);
@@ -174,10 +180,8 @@ public class GameManager {
 
             try {
                 pool.invokeAll(callables);
-
             } catch (InterruptedException ex) {
-                Logger.getLogger(GameManager.class
-                        .getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
     }

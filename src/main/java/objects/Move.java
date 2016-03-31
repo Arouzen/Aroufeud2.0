@@ -32,16 +32,16 @@ public class Move implements Comparable {
     public void setScore(int score) {
         this.score = score;
     }
-    
-    public void addTile(int row, int column, String letter) {
+
+    public void addTile(int row, int column, String letter, boolean wildcard) {
         JSONArray tile = new JSONArray();
         tile.put(column);
         tile.put(row);
         tile.put(letter.toUpperCase());
-        tile.put(false);
+        tile.put(wildcard);
         tiles.put(tile);
     }
-    
+
     public void addWord(String word) {
         words.put(word.toUpperCase());
     }
@@ -67,11 +67,11 @@ public class Move implements Comparable {
     public void setEnds(Tile ends) {
         this.ends = ends;
     }
-    
+
     public JSONArray getTiles() {
         return tiles;
     }
-    
+
     public JSONArray getWords() {
         return words;
     }

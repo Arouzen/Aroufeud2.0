@@ -106,22 +106,35 @@ public class WordTrie {
     public ArrayList<String> generateWordsWithRack(TrieNode curNode, ArrayList<String> rack, String curPrefix) {
         ArrayList<String> validWords = new ArrayList<>();
         // Iteratate the rack
+
         for (String rackChar : rack) {
             // Clone our rack and remove our current rackChar from it
             ArrayList<String> tmpRack = (ArrayList<String>) rack.clone();
             tmpRack.remove(rackChar);
             // Check if partWord + rackTile may form more valid partialWords
-            TrieNode nextNode = curNode.getNode(rackChar.charAt(0));
-            if (nextNode != null) {
-                // Success! Go deeper! 
-                // Replace node with the node we just checked exists, add rackTile to partWord, replace rack with tmpRack
-                // If nextNode is a valid word, add it to validWords
-                if (nextNode.isWord()) {
-                    if (!validWords.contains(nextNode.toString())) {
-                        validWords.add(nextNode.toString());
+            if (rackChar.length() == 0) {
+                // Wildcard tile! This can be anything. So iterate every node available.
+                for (TrieNode nextNode : curNode.getNodes()) {
+                    if (nextNode.isWord()) {
+                        if (!validWords.contains(nextNode.toString())) {
+                            validWords.add(nextNode.toString());
+                        }
                     }
+                    validWords.addAll(generateWordsWithRack(nextNode, tmpRack, curPrefix + rackChar));
                 }
-                validWords.addAll(generateWordsWithRack(nextNode, tmpRack, curPrefix + rackChar));
+            } else {
+                TrieNode nextNode = curNode.getNode(rackChar.charAt(0));
+                if (nextNode != null) {
+                    // Success! Go deeper! 
+                    // Replace node with the node we just checked exists, add rackTile to partWord, replace rack with tmpRack
+                    // If nextNode is a valid word, add it to validWords
+                    if (nextNode.isWord()) {
+                        if (!validWords.contains(nextNode.toString())) {
+                            validWords.add(nextNode.toString());
+                        }
+                    }
+                    validWords.addAll(generateWordsWithRack(nextNode, tmpRack, curPrefix + rackChar));
+                }
             }
         }
         return validWords;

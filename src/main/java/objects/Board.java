@@ -11,16 +11,16 @@ import org.json.JSONArray;
  * @author arouz
  */
 public final class Board implements Serializable {
-
+    
     ArrayList<ArrayList<Tile>> board;
-
+    
     public Board(JSONArray tiles) {
         board = new ArrayList<>();
         // init 15x15 empty tiles
         for (int row = 0; row < 15; row++) {
             ArrayList<Tile> tmpRow = new ArrayList<>();
             for (int column = 0; column < 15; column++) {
-                tmpRow.add(new Tile(row, column, "_"));
+                tmpRow.add(new Tile(row, column, "_", false));
             }
             board.add(tmpRow);
         }
@@ -30,11 +30,12 @@ public final class Board implements Serializable {
             JSONArray tile = (JSONArray) tileJson;
             Tile curTile = getTile(tile.getInt(1), tile.getInt(0));
             curTile.setLetter(tile.getString(2).toLowerCase());
+            curTile.setWildcard(tile.getBoolean(3));
         }
-
-        updatePowers();
+        
+        setPowers();
     }
-
+    
     public Board(Board board) {
         ArrayList<ArrayList<Tile>> newBoard = new ArrayList<>();
         for (ArrayList<Tile> row : this.board) {
@@ -46,16 +47,16 @@ public final class Board implements Serializable {
         }
         this.board = newBoard;
     }
-
+    
     public void rotateBoard(boolean clockwise) {
         int m = board.size();
-
+        
         ArrayList<ArrayList<Tile>> rotBoard = new ArrayList<>();
         // Fill rotBoard with 15x15 empty tiles
         for (int row = 0; row < 15; row++) {
             ArrayList<Tile> tmpRow = new ArrayList<>();
             for (int column = 0; column < 15; column++) {
-                tmpRow.add(new Tile(row, column, "_"));
+                tmpRow.add(new Tile(row, column, "_", false));
             }
             rotBoard.add(tmpRow);
         }
@@ -64,17 +65,26 @@ public final class Board implements Serializable {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < m; j++) {
                 if (clockwise) {
-                    rotBoard.get(j).get(m - 1 - i).setLetter(getTile(i, j).getLetter());
+                    Tile newTile = rotBoard.get(j).get(m - 1 - i);
+                    Tile oldTile = getTile(i, j);
+                    
+                    newTile.setLetter(oldTile.getLetter());
+                    newTile.setPower(oldTile.getPower());
+                    newTile.setWildcard(oldTile.isWildcard());
                 } else {
-                    rotBoard.get(i).get(j).setLetter(getTile(j, m - i - 1).getLetter());
+                    Tile newTile = rotBoard.get(i).get(j);
+                    Tile oldTile = getTile(j, m - i - 1);
+                    
+                    newTile.setLetter(oldTile.getLetter());
+                    newTile.setPower(oldTile.getPower());
+                    newTile.setWildcard(oldTile.isWildcard());
                 }
             }
         }
-
+        
         board = rotBoard;
-        updatePowers();
     }
-
+    
     public void printBoard() {
         for (int row = 0; row < 15; row++) {
             for (int column = 0; column < 15; column++) {
@@ -84,12 +94,12 @@ public final class Board implements Serializable {
             System.out.println("");
         }
     }
-
+    
     public Tile getTile(int row, int column) {
         return this.board.get(row).get(column);
     }
-
-    public void updatePowers() {
+    
+    public void setPowers() {
         ArrayList<Tile> TLs = new ArrayList<>();
         ArrayList<Tile> TWs = new ArrayList<>();
         ArrayList<Tile> DLs = new ArrayList<>();
@@ -116,7 +126,7 @@ public final class Board implements Serializable {
         TLs.add(new Tile(13, 9));
         TLs.add(new Tile(14, 0));
         TLs.add(new Tile(14, 14));
-
+        
         TWs.add(new Tile(0, 4));
         TWs.add(new Tile(0, 10));
         TWs.add(new Tile(4, 0));
@@ -125,7 +135,7 @@ public final class Board implements Serializable {
         TWs.add(new Tile(10, 14));
         TWs.add(new Tile(14, 4));
         TWs.add(new Tile(14, 10));
-
+        
         DLs.add(new Tile(0, 7));
         DLs.add(new Tile(1, 1));
         DLs.add(new Tile(1, 13));
@@ -150,7 +160,7 @@ public final class Board implements Serializable {
         DLs.add(new Tile(13, 1));
         DLs.add(new Tile(13, 13));
         DLs.add(new Tile(14, 7));
-
+        
         DWs.add(new Tile(2, 2));
         DWs.add(new Tile(2, 12));
         DWs.add(new Tile(3, 7));
@@ -163,7 +173,7 @@ public final class Board implements Serializable {
         DWs.add(new Tile(11, 7));
         DWs.add(new Tile(12, 2));
         DWs.add(new Tile(12, 12));
-
+        
         for (ArrayList<Tile> row : board) {
             for (Tile curTile : row) {
                 // Update tile powers
