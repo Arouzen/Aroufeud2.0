@@ -96,6 +96,9 @@ public class GameManager {
                         System.out.println("Success!");
                         JSONObject content = (JSONObject) response.get("content");
                         System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
+                    } else {
+                        System.out.println(response.toString());
+                        System.out.println(chosenMove);
                     }
                 }
             }

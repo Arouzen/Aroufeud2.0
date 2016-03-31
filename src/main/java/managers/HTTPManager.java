@@ -46,37 +46,42 @@ public class HTTPManager {
     }
 
     public JSONObject postJson(final String path, final String data) throws Exception {
-        try {
-            // Convert string data to HttpEntity object
-            StringEntity entity = new StringEntity(data, "UTF-8");
-            entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+        for (int retry = 0; retry < 3; retry++) {
+            try {
+                // Convert string data to HttpEntity object
+                StringEntity entity = new StringEntity(data, "UTF-8");
+                entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 
-            // Create HttpPost object
-            final HttpPost post = createPost(path, entity);
+                // Create HttpPost object
+                final HttpPost post = createPost(path, entity);
 
-            // Add sessionid cookie to HttpPost object
-            if (sessionId != null) {
-                post.addHeader("Cookie", "sessionid=" + sessionId);
+                // Add sessionid cookie to HttpPost object
+                if (sessionId != null) {
+                    post.addHeader("Cookie", "sessionid=" + sessionId);
+                }
+
+                // Send post to server, fetch HttpResponse
+                final HttpResponse response = httpClient.execute(post);
+
+                // Handle HttpResponse
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    return handleResponse(response);
+                } else {
+                    EntityUtils.consume(response.getEntity());
+                    throw new Exception("Got unexpected HTTP " + response.getStatusLine().getStatusCode() + ": " + response.toString());
+                }
+
+            } catch (IOException e) {
+                //throw new RuntimeException("Error when contacting WordFeud API", e);
+                System.out.println("Error when contacting WordFeud API, retrying in 5 seconds.");
+                Thread.sleep(5000);
+            } catch (JSONException e) {
+                throw new RuntimeException("Could not parse JSON", e);
+            } finally {
+                connManager.closeExpiredConnections();
             }
-
-            // Send post to server, fetch HttpResponse
-            final HttpResponse response = httpClient.execute(post);
-
-            // Handle HttpResponse
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return handleResponse(response);
-            } else {
-                EntityUtils.consume(response.getEntity());
-                throw new Exception("Got unexpected HTTP " + response.getStatusLine().getStatusCode() + ": " + response.toString());
-            }
-
-        } catch (IOException e) {
-            throw new RuntimeException("Error when contacting WordFeud API", e);
-        } catch (JSONException e) {
-            throw new RuntimeException("Could not parse JSON", e);
-        } finally {
-            connManager.closeExpiredConnections();
         }
+        return null;
     }
 
     private JSONObject handleResponse(final HttpResponse response) throws IOException, JSONException {
