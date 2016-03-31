@@ -59,4 +59,12 @@ public class SessionManager {
 
         return new BigInteger(1, crypt.digest()).toString(16);
     }
+
+    public JSONObject rejectInvite(long id) throws Exception {
+        return httpManager.postJson("/games/" + String.valueOf(id) + "/reject/", "");
+    }
+
+    public JSONObject acceptInvite(long id) throws Exception {
+        return httpManager.postJson("/invite/" + String.valueOf(id) + "/accept/", "");
+    }
 }

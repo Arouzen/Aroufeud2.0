@@ -1,9 +1,8 @@
 package managers;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +33,7 @@ import workers.Worker;
  */
 public class GameManager {
 
-    private SessionManager sm;
+    private final SessionManager sm;
 
     public GameManager(SessionManager sm) {
         this.sm = sm;
@@ -51,8 +50,10 @@ public class GameManager {
         // Init the threadpool
         ExecutorService pool = Executors.newFixedThreadPool(8);
 
-        HashMap<Character, Integer> charScores = generateCharMap("en");
-        WordTrie trie = generateWordTrie("en");
+        HashMap<Character, Integer> en_charScores = generateCharMap("en");
+        WordTrie en_trie = generateWordTrie("en");
+        HashMap<Character, Integer> sv_charScores = generateCharMap("sv");
+        WordTrie sv_trie = generateWordTrie("sv");
 
         for (Game game : gameList) {
             if (game.getCurrent_player() == game.getMy_position() && game.getEnd_game() == 0) {
@@ -61,7 +62,12 @@ public class GameManager {
                 System.out.println(game.getMy_username() + "s score: " + game.getMy_score());
                 System.out.println(game.getEnemy_username() + "s score: " + game.getEnemy_score());
                 System.out.println("Calculating moves...");
-                List<Move> validMoves = generateMoves(game, trie, charScores, pool);
+                List<Move> validMoves;
+                if (game.getRuleset() == 0) {
+                    validMoves = generateMoves(game, en_trie, en_charScores, pool);
+                } else {
+                    validMoves = generateMoves(game, sv_trie, sv_charScores, pool);
+                }
                 System.out.println("Type the index of the move you want me to play for you!");
                 int i = 0;
                 validMoves = validMoves.subList(0, 10);
@@ -94,6 +100,7 @@ public class GameManager {
                 }
             }
         }
+
         pool.shutdown();
     }
 
@@ -110,7 +117,6 @@ public class GameManager {
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
         long endTime = System.currentTimeMillis();
         System.out.println("Moves generated in: " + (endTime - startTime) + "ms.");
-        //validMoves.addAll(moves);
 
         ArrayList<Move> sortedMoves = new ArrayList<>(validMoves);
         Collections.sort(sortedMoves);
@@ -144,6 +150,13 @@ public class GameManager {
                 move.setScore(addScore(7, 7, false, word, charScores, game.getBoard()) + bingo);
                 move.setEnds(new Tile(7, 6 + word.length()));
                 move.setStarts(new Tile(7, 7));
+                move.addWord(word);
+                int row = 7;
+                int column = 7;
+                for (char character : word.toCharArray()) {
+                    move.addTile(row, column, String.valueOf(character));
+                    column++;
+                }
                 validMoves.add(move);
             }
         } else {
@@ -158,8 +171,10 @@ public class GameManager {
 
             try {
                 pool.invokeAll(callables);
+
             } catch (InterruptedException ex) {
-                Logger.getLogger(GameManager.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(GameManager.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -172,8 +187,8 @@ public class GameManager {
      */
     private HashMap<Character, Integer> generateCharMap(String language) {
         HashMap<Character, Integer> charMap = new HashMap<>();
-        File charlist = new File(language + "_charlist.txt");
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(charlist), "UTF8"))) {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_charlist.txt");
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
             for (String line; (line = br.readLine()) != null;) {
                 if (!line.startsWith("#")) {
                     // Split row on ":"
@@ -195,16 +210,16 @@ public class GameManager {
 
     public WordTrie generateWordTrie(String language) {
         long startTime = System.currentTimeMillis();
-        File ordlista = new File(language + "_wordlist.txt");
+        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_wordlist.txt");
         WordTrie trie = new WordTrie();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(ordlista), "UTF8"))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
             for (String line; (line = br.readLine()) != null;) {
                 if (!line.startsWith("#")) {
                     trie.addWord(line.toLowerCase());
                 }
             }
         } catch (IOException ex) {
-            System.out.println("wordlist.txt wasn't found.");
+            System.out.println(language + "_wordlist.txt wasn't found.");
         } finally {
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - startTime;
