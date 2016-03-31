@@ -138,7 +138,7 @@ public class GameManager {
         Add moves to validMoves set
          */
 
-        ArrayList<String> rack = (ArrayList<String>) game.getRack();
+        ArrayList<String> rack = game.getRack();
 
         // Start with finding all words that can be created with only the rack, without interference of the board
         ArrayList<String> rackWords = trie.generateWordsWithRack(rack);

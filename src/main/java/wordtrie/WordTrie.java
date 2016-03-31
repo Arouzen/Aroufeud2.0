@@ -21,11 +21,10 @@ public class WordTrie {
     public WordTrie() {
         root = new TrieNode();
     }
-    
+
     /*public WordTrie(WordTrie wordTrie) {
         this.root = wordTrie.root.clone();
     }*/
-
     /**
      * Adds a word to the Trie
      *
@@ -153,7 +152,7 @@ public class WordTrie {
      * @param board
      * @return
      */
-    public ArrayList<String> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
+    public synchronized ArrayList<String> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
         ArrayList<String> prefixWords = new ArrayList<>();
         // For every column 0 to anchorTile.column, generate prefixes with this column as starter tile
         for (int column = 0; column < anchorTile.getColumn() + 1; column++) {
@@ -196,7 +195,7 @@ public class WordTrie {
                     // Also add the remainder of our rack after a delimeter to the prefix
                     String joinedRack = "";
                     for (String rackChar : rack) {
-                        joinedRack += rackChar;
+                        joinedRack += rackChar.isEmpty() ? "?" : rackChar;
                     }
                     prefixWords.add(curPrefix + anchorTile.getLetter() + ":" + joinedRack);
                 } else {
@@ -210,11 +209,22 @@ public class WordTrie {
                 // Clone the rack, and remove the current rackChar from it
                 ArrayList<String> tmpRack = (ArrayList<String>) rack.clone();
                 tmpRack.remove(rackChar);
-                // Proceed if current node may form a prefix with the rackChar as the next node
-                nextNode = curNode.getNode(rackChar.charAt(0));
-                if (nextNode != null) {
-                    // Go deeper! Replace curNode with nextNode, replace rack with tmpRack, append rackChar to curPrefix and move column to the right by adding column by 1
-                    prefixWords.addAll(generateValidPrefixes(nextNode, tmpRack, column + 1, curPrefix + rackChar, anchorTile, board));
+                if (rackChar.length() == 0) {
+                    // Wildcard tile! This can be anything. So iterate every node available.
+                    for (TrieNode wildcardNode : curNode.getNodes()) {
+                        prefixWords.addAll(generateValidPrefixes(wildcardNode, tmpRack, column + 1, curPrefix + rackChar, anchorTile, board));
+                    }
+                } else {
+                    // Proceed if current node may form a prefix with the rackChar as the next node
+                    nextNode = curNode.getNode(rackChar.charAt(0));
+                    if (nextNode != null) {
+                        // Go deeper! Replace curNode with nextNode, replace rack with tmpRack, append rackChar to curPrefix and move column to the right by adding column by 1
+                        try {
+                            prefixWords.addAll(generateValidPrefixes(nextNode, tmpRack, column + 1, curPrefix + rackChar, anchorTile, board));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }

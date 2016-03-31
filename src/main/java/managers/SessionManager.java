@@ -49,9 +49,8 @@ public class SessionManager {
                 + "\"move\": " + move.toString() + ""
                 + "}";
 
-        System.out.println(jsonData);
-        return null;
-        //return httpManager.postJson("/game/" + gameId + "/move/", jsonData);
+        //System.out.println(jsonData);
+        return httpManager.postJson("/game/" + gameId + "/move/", jsonData);
     }
 
     private static String encryptPassword(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {

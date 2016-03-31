@@ -8,8 +8,8 @@ import java.io.Serializable;
  */
 public class Tile implements Serializable {
 
-    private final int column;
-    private final int row;
+    private int column;
+    private int row;
     private String power;
     private String letter;
     private boolean wildcard;
@@ -40,6 +40,14 @@ public class Tile implements Serializable {
 
     public int getRow() {
         return row;
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
+    }
+
+    public void setRow(int row) {
+        this.row = row;
     }
 
     public String getLetter() {
