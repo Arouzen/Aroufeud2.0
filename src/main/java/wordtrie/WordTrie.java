@@ -152,7 +152,7 @@ public class WordTrie {
      * @param board
      * @return
      */
-    public synchronized ArrayList<String> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
+    public ArrayList<String> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
         ArrayList<String> prefixWords = new ArrayList<>();
         // For every column 0 to anchorTile.column, generate prefixes with this column as starter tile
         for (int column = 0; column < anchorTile.getColumn() + 1; column++) {
