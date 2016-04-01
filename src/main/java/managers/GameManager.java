@@ -1,9 +1,6 @@
 package managers;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import aroufeud.Aroufeud;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,12 +29,22 @@ import workers.Worker;
 public class GameManager {
 
     private final SessionManager sm;
+    HashMap<Character, Integer> en_charScores;
+    HashMap<Character, Integer> sv_charScores;
+    WordTrie en_trie;
+    WordTrie sv_trie;
+    ExecutorService pool;
 
-    public GameManager(SessionManager sm) {
-        this.sm = sm;
+    public GameManager(Aroufeud aroufeud) {
+        this.sm = aroufeud.getSessionManager();
+        this.en_charScores = aroufeud.get_en_charScores();
+        this.en_trie = aroufeud.get_en_trie();
+        this.sv_charScores = aroufeud.get_sv_charScores();
+        this.sv_trie = aroufeud.get_sv_trie();
+        this.pool = aroufeud.getPool();
     }
 
-    public void playGames(ArrayList<Game> gameList, boolean fullyAutomatic, ExecutorService pool) {
+    public void playGames(ArrayList<Game> gameList, boolean fullyAutomatic) {
         // Iterate games, for each game:
         // * Proceed if it is your turn
         // * Based on game language, select trie and charscore set
@@ -45,12 +52,6 @@ public class GameManager {
         // * [if not fully automatic] Ask user which move to play
         // * [if fully automatic] Iterate the moves, try to play the best, else keep moving
         // * Send solution to server
-
-        HashMap<Character, Integer> en_charScores = generateCharMap("en");
-        WordTrie en_trie = generateWordTrie("en");
-        HashMap<Character, Integer> sv_charScores = generateCharMap("sv");
-        WordTrie sv_trie = generateWordTrie("sv");
-
         for (Game game : gameList) {
             if (game.getCurrent_player() == game.getMy_position() && game.getEnd_game() == 0) {
                 System.out.println("==========");
@@ -207,55 +208,6 @@ public class GameManager {
         }
     }
 
-    /**
-     * Generate HashMap with a character as key, and its score as value. Values
-     * and keys given from external txt file.
-     *
-     * @return HashMap< Character,Integer >
-     */
-    private HashMap<Character, Integer> generateCharMap(String language) {
-        HashMap<Character, Integer> charMap = new HashMap<>();
-        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_charlist.txt");
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
-            for (String line; (line = br.readLine()) != null;) {
-                if (!line.startsWith("#")) {
-                    // Split row on ":"
-                    // Key on first index
-                    // Value on second index
-                    // Then add to charMap
-                    String[] charList = line.split(":");
-                    Character character = charList[0].charAt(0);
-                    int charScore = Integer.valueOf(charList[1]);
-                    charMap.put(character, charScore);
-                }
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            System.out.println(language + "_charlist.txt wasn't found.");
-        }
-        return charMap;
-    }
-
-    public WordTrie generateWordTrie(String language) {
-        long startTime = System.currentTimeMillis();
-        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_wordlist.txt");
-        WordTrie trie = new WordTrie();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
-            for (String line; (line = br.readLine()) != null;) {
-                if (!line.startsWith("#")) {
-                    trie.addWord(line.toLowerCase());
-                }
-            }
-        } catch (IOException ex) {
-            System.out.println(language + "_wordlist.txt wasn't found.");
-        } finally {
-            long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-            System.out.println("Trie generated in: " + totalTime + "ms.");
-        }
-        return trie;
-    }
-
     public int addScore(int row, int column, boolean horizontal, String word, HashMap<Character, Integer> charScores, Board board) {
         int multiplier = 1;
         int totScore = 0;
@@ -269,14 +221,21 @@ public class GameManager {
             int charScore = charScores.get(word.charAt(i));
             // Only deal with powers if the tile is empty (in other words ensure that the power is not already used)
             if (curTile.getLetter().equals("_") && curTile.getPower() != null) {
-                if (curTile.getPower().equals("DW")) {
-                    multiplier *= 2;
-                } else if (curTile.getPower().equals("TW")) {
-                    multiplier *= 3;
-                } else if (curTile.getPower().equals("DL")) {
-                    charScore *= 2;
-                } else if (curTile.getPower().equals("TL")) {
-                    charScore *= 3;
+                switch (curTile.getPower()) {
+                    case "DW":
+                        multiplier *= 2;
+                        break;
+                    case "TW":
+                        multiplier *= 3;
+                        break;
+                    case "DL":
+                        charScore *= 2;
+                        break;
+                    case "TL":
+                        charScore *= 3;
+                        break;
+                    default:
+                        break;
                 }
             }
             totScore += charScore;

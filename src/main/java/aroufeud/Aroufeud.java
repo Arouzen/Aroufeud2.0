@@ -1,21 +1,42 @@
 package aroufeud;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import managers.SessionManager;
 import objects.Game;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import wordtrie.WordTrie;
 
 /**
  *
  * @author arouz
  */
-public class Aroufeud {
+public final class Aroufeud {
 
-    SessionManager sm;
+    private final SessionManager sm;
+    private final WordTrie en_trie;
+    private final WordTrie sv_trie;
+    private final HashMap<Character, Integer> sv_charScores;
+    private final HashMap<Character, Integer> en_charScores;
+    private final ExecutorService pool;
 
     public Aroufeud() {
+        // Initiate the sessionManager
         sm = new SessionManager();
+        // Initiate the tries and scoreMaps
+        en_trie = generateWordTrie("en");
+        sv_trie = generateWordTrie("sv");
+        en_charScores = generateCharMap("en");
+        sv_charScores = generateCharMap("sv");
+        // Initiate the threadpool
+        pool = Executors.newFixedThreadPool(8);
     }
 
     public JSONObject login(String email, String password) throws Exception {
@@ -45,7 +66,6 @@ public class Aroufeud {
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                    
                 } else {
                     try {
                         sm.rejectInvite(invite.getLong("id"));
@@ -92,5 +112,78 @@ public class Aroufeud {
         }
 
         return gameList;
+    }
+
+    /**
+     * Generate HashMap with a character as key, and its score as value. Values
+     * and keys given from external txt file.
+     *
+     * @return HashMap< Character,Integer >
+     */
+    private HashMap<Character, Integer> generateCharMap(String language) {
+        HashMap<Character, Integer> charMap = new HashMap<>();
+        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_charlist.txt");
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
+            for (String line; (line = br.readLine()) != null;) {
+                if (!line.startsWith("#")) {
+                    // Split row on ":"
+                    // Key on first index
+                    // Value on second index
+                    // Then add to charMap
+                    String[] charList = line.split(":");
+                    Character character = charList[0].charAt(0);
+                    int charScore = Integer.valueOf(charList[1]);
+                    charMap.put(character, charScore);
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            System.out.println(language + "_charlist.txt wasn't found.");
+        }
+        return charMap;
+    }
+
+    private WordTrie generateWordTrie(String language) {
+        long startTime = System.currentTimeMillis();
+        InputStream is = getClass().getClassLoader().getResourceAsStream(language + "_wordlist.txt");
+        WordTrie trie = new WordTrie();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF8"))) {
+            for (String line; (line = br.readLine()) != null;) {
+                if (!line.startsWith("#")) {
+                    trie.addWord(line.toLowerCase());
+                }
+            }
+        } catch (IOException ex) {
+            System.out.println(language + "_wordlist.txt wasn't found.");
+        } finally {
+            long endTime = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
+            System.out.println(language + "_trie generated in: " + totalTime + "ms.");
+        }
+        return trie;
+    }
+
+    public WordTrie get_en_trie() {
+        return en_trie;
+    }
+
+    public WordTrie get_sv_trie() {
+        return sv_trie;
+    }
+
+    public HashMap<Character, Integer> get_sv_charScores() {
+        return sv_charScores;
+    }
+
+    public HashMap<Character, Integer> get_en_charScores() {
+        return en_charScores;
+    }
+
+    public SessionManager getSessionManager() {
+        return sm;
+    }
+
+    public ExecutorService getPool() {
+        return pool;
     }
 }
