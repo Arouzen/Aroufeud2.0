@@ -52,8 +52,10 @@ public class GameManager {
         // * [if not fully automatic] Ask user which move to play
         // * [if fully automatic] Iterate the moves, try to play the best, else keep moving
         // * Send solution to server
+        boolean playedOnce = false;
         for (Game game : gameList) {
             if (game.getCurrent_player() == game.getMy_position() && game.getEnd_game() == 0) {
+                playedOnce = true;
                 System.out.println("==========");
                 String enemy = (game.getEnemy_fullname().isEmpty() ? game.getEnemy_username() : game.getEnemy_fullname());
                 System.out.println(game.getMy_username() + " VS " + enemy);
@@ -122,6 +124,9 @@ public class GameManager {
                     }
                 }
             }
+        }
+        if (!playedOnce) {
+            System.out.println("Waiting for opponents...");
         }
     }
 

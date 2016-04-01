@@ -56,11 +56,7 @@ public class Main {
                     try {
                         // Parse account status, parse invites, accept english/swedish normal game invites, decline the rest, parse the games, then play the games where it's your turn
                         ArrayList<Game> gameList = aroufeud.parseStatus(((JSONObject) response.get("content")).getString("username"));
-                        if (gameList.isEmpty()) {
-                            System.out.println("Waiting for opponents...");
-                        } else {
-                            gm.playGames(gameList, fullyAuto);
-                        }
+                        gm.playGames(gameList, fullyAuto);
                         System.out.println("----------");
                         System.out.println("Idling for 60seconds.");
                         Thread.sleep(1000 * 60);
