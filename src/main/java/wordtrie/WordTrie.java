@@ -152,15 +152,15 @@ public class WordTrie {
      * @param board
      * @return
      */
-    public ArrayList<String> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
-        ArrayList<String> prefixWords = new ArrayList<>();
+    public ArrayList<Word> generateValidPrefixes(ArrayList<String> rack, Tile anchorTile, Board board) {
+        ArrayList<Word> prefixWords = new ArrayList<>();
         // For every column 0 to anchorTile.column, generate prefixes with this column as starter tile
         for (int column = 0; column < anchorTile.getColumn() + 1; column++) {
             // Check left of tile. Don't check if column is zero though, as that would lead to collision with left wall.
             // If the tile is connected with a non empty tile to the left, skip it. Invalid starter tile.
             if (column == 0 || board.getTile(anchorTile.getRow(), column - 1).getLetter().equals("_")) {
                 // Generate prefixes with this tile as starter tile, add results to prefixWords
-                ArrayList<String> validPrefixes = generateValidPrefixes(root, rack, column, "", anchorTile, board);
+                ArrayList<Word> validPrefixes = generateValidPrefixes(root, rack, column, "", anchorTile, board);
                 prefixWords.addAll(validPrefixes);
             }
         }
@@ -180,8 +180,8 @@ public class WordTrie {
      * @param board
      * @return ArrayList of String representation of "validPrefix:remainingRack"
      */
-    public ArrayList<String> generateValidPrefixes(TrieNode curNode, ArrayList<String> rack, int column, String curPrefix, Tile anchorTile, Board board) {
-        ArrayList<String> prefixWords = new ArrayList<>();
+    public ArrayList<Word> generateValidPrefixes(TrieNode curNode, ArrayList<String> rack, int column, String curPrefix, Tile anchorTile, Board board) {
+        ArrayList<Word> prefixWords = new ArrayList<>();
         TrieNode nextNode;
         // Get the tile (anchorTile.row, column) from the board
         Tile curTile = board.getTile(anchorTile.getRow(), column);
@@ -192,12 +192,8 @@ public class WordTrie {
             if (nextNode != null) {
                 // Check if we are at the anchorTile
                 if (column == anchorTile.getColumn()) {
-                    // Also add the remainder of our rack after a delimeter to the prefix
-                    String joinedRack = "";
-                    for (String rackChar : rack) {
-                        joinedRack += rackChar.isEmpty() ? "?" : rackChar;
-                    }
-                    prefixWords.add(curPrefix + anchorTile.getLetter() + ":" + joinedRack);
+                    // Also include the remaining rack
+                    prefixWords.add(new Word(curPrefix + anchorTile.getLetter(), rack));
                 } else {
                     // Go deeper. Replace curNode with nextNode, append curTile's letter to curPrefix and move column to the right by adding column by 1
                     prefixWords.addAll(generateValidPrefixes(nextNode, rack, column + 1, curPrefix + curTile.getLetter(), anchorTile, board));

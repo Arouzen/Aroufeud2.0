@@ -1,19 +1,18 @@
 package objects;
 
+import java.util.Objects;
 import org.json.JSONArray;
 
 /**
  *
  * @author arouz
  */
-public class Move implements Comparable {
+public class Move implements Comparable<Move> {
 
     private final Word word;
     private int score;
-    private Tile starts;
-    private Tile ends;
-    private JSONArray words;
-    private JSONArray tiles;
+    private final JSONArray words;
+    private final JSONArray tiles;
 
     public Move(Word word) {
         this.word = word;
@@ -46,28 +45,6 @@ public class Move implements Comparable {
         words.put(word.toUpperCase());
     }
 
-    @Override
-    public int compareTo(Object cmp) {
-        int compareScore = ((Move) cmp).getScore();
-        return compareScore - getScore();
-    }
-
-    public Tile getStarts() {
-        return starts;
-    }
-
-    public void setStarts(Tile starts) {
-        this.starts = starts;
-    }
-
-    public Tile getEnds() {
-        return ends;
-    }
-
-    public void setEnds(Tile ends) {
-        this.ends = ends;
-    }
-
     public JSONArray getTiles() {
         return tiles;
     }
@@ -78,6 +55,39 @@ public class Move implements Comparable {
 
     @Override
     public String toString() {
-        return "Move{score=" + score + ", word=" + word + ", starts=" + starts + ", ends=" + ends + '}';
+        return "Move{score=" + score + ", word=" + word + ", tiles=" + getTiles().toString() + ", words=" + getWords().toString() + '}';
     }
+
+    @Override
+    public int compareTo(Move o) {
+        int compareScore = o.getScore();
+        return compareScore - getScore();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.word);
+        hash = 89 * hash + this.score;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Move other = (Move) obj;
+        if (this.getScore() != other.getScore()) {
+            return false;
+        }
+        return getWord().getWord().equals(other.getWord().getWord());
+    }
+
 }

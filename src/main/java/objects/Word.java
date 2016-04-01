@@ -2,6 +2,8 @@
  */
 package objects;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author arouz
@@ -11,15 +13,23 @@ public class Word {
     private Tile anchorTile;
     private int anchorPosition;
     private String word;
+    private ArrayList<String> rack;
 
     public Word(String word) {
         this.word = word;
+        this.rack = new ArrayList<>();
+    }
+    
+    public Word(String word, ArrayList<String> rack) {
+        this.word = word;
+        this.rack = rack;
     }
 
     public Word(Word word) {
         this.word = word.getWord();
         this.anchorTile = new Tile(word.getAnchorTile());
         this.anchorPosition = word.getAnchorPosition();
+        this.rack = word.getRack();
     }
 
     public int getAnchorPosition() {
@@ -40,6 +50,10 @@ public class Word {
 
     public void setWord(String word) {
         this.word = word;
+    }
+
+    public ArrayList<String> getRack() {
+        return rack;
     }
 
     @Override

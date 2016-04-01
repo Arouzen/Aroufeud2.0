@@ -50,6 +50,7 @@ public class SessionManager {
                 + "}";
 
         //System.out.println(jsonData);
+        //return null;
         return httpManager.postJson("/game/" + gameId + "/move/", jsonData);
     }
 

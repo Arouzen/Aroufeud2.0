@@ -37,16 +37,14 @@ public class GameManager {
         this.sm = sm;
     }
 
-    public void playGames(ArrayList<Game> gameList) {
+    public void playGames(ArrayList<Game> gameList, boolean fullyAutomatic, ExecutorService pool) {
         // Iterate games, for each game:
         // * Proceed if it is your turn
         // * Based on game language, select trie and charscore set
         // * Use workers to find all moves
-        // * Ask user which move to play
+        // * [if not fully automatic] Ask user which move to play
+        // * [if fully automatic] Iterate the moves, try to play the best, else keep moving
         // * Send solution to server
-
-        // Init the threadpool
-        ExecutorService pool = Executors.newFixedThreadPool(8);
 
         HashMap<Character, Integer> en_charScores = generateCharMap("en");
         WordTrie en_trie = generateWordTrie("en");
@@ -56,56 +54,73 @@ public class GameManager {
         for (Game game : gameList) {
             if (game.getCurrent_player() == game.getMy_position() && game.getEnd_game() == 0) {
                 System.out.println("==========");
-                System.out.println("GAME VS " + game.getEnemy_username());
+                System.out.println(game.getMy_username() + " VS " + game.getEnemy_username());
                 System.out.println(game.getMy_username() + "s score: " + game.getMy_score());
                 System.out.println(game.getEnemy_username() + "s score: " + game.getEnemy_score());
                 System.out.println("Calculating moves...");
-                List<Move> validMoves;
-                if (game.getRuleset() == 0) {
-                    validMoves = generateMoves(game, en_trie, en_charScores, pool);
-                } else {
-                    validMoves = generateMoves(game, sv_trie, sv_charScores, pool);
-                }
-                System.out.println("Type the index of the move you want me to play for you!");
-                int i = 0;
-                // If over 10 valid moves, strip it down to 10
-                if (validMoves.size() >= 10) {
-                    validMoves = validMoves.subList(0, 10);
-                }
-                for (Move move : validMoves) {
-                    System.out.println("[" + i + "] " + move.getWord().getWord() + " for " + move.getScore() + " points.");
-                    i++;
-                }
-                Scanner scan = new Scanner(System.in);
-                int choice = 0;
-                while (true) {
-                    try {
-                        choice = scan.nextInt();
-                        break;
-                    } catch (InputMismatchException ex) {
+                List<Move> validMoves = generateMoves(game, (game.getRuleset() == 0 ? en_trie : sv_trie), (game.getRuleset() == 0 ? en_charScores : sv_charScores), pool);
+                Move chosenMove;
+                if (!fullyAutomatic) {
+                    System.out.println("Type the index of the move you want me to play for you!");
+                    int i = 0;
+                    // If over 10 valid moves, strip it down to 10
+                    if (validMoves.size() >= 10) {
+                        validMoves = validMoves.subList(0, 10);
                     }
-                }
-                Move chosenMove = validMoves.get(choice);
-                JSONObject response = null;
-                try {
-                    response = sm.playMove(game.getId(), game.getRuleset(), chosenMove.getTiles(), chosenMove.getWords());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                if (response != null) {
-                    if (response.get("status").equals("success")) {
-                        System.out.println("Success!");
-                        JSONObject content = (JSONObject) response.get("content");
-                        System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
-                    } else {
-                        System.out.println(response.toString());
-                        System.out.println(chosenMove);
+                    for (Move move : validMoves) {
+                        System.out.println("[" + i + "] " + move.getWord().getWord() + " for " + move.getScore() + " points.");
+                        i++;
+                    }
+                    Scanner scan = new Scanner(System.in);
+                    int choice = 0;
+                    while (true) {
+                        try {
+                            choice = scan.nextInt();
+                            break;
+                        } catch (InputMismatchException ex) {
+                        }
+                    }
+                    chosenMove = validMoves.get(choice);
+                    JSONObject response = null;
+                    try {
+                        response = sm.playMove(game.getId(), game.getRuleset(), chosenMove.getTiles(), chosenMove.getWords());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    if (response != null) {
+                        if (response.get("status").equals("success")) {
+                            //System.out.println("Success!");
+                            JSONObject content = (JSONObject) response.get("content");
+                            System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
+                        } else {
+                            System.out.println(response.toString());
+                            System.out.println(chosenMove);
+                        }
+                    }
+                } else {
+                    // Automatic moves
+                    for (Move move : validMoves) {
+                        JSONObject response = null;
+                        try {
+                            response = sm.playMove(game.getId(), game.getRuleset(), move.getTiles(), move.getWords());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        if (response != null) {
+                            if (response.get("status").equals("success")) {
+                                System.out.println("Success!");
+                                JSONObject content = (JSONObject) response.get("content");
+                                System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
+                                break;
+                            } else {
+                                System.out.println(response.toString());
+                                System.out.println("Trying next move...");
+                            }
+                        }
                     }
                 }
             }
         }
-
-        pool.shutdown();
     }
 
     private ArrayList<Move> generateMoves(Game game, WordTrie trie, HashMap<Character, Integer> charScores, ExecutorService pool) {
@@ -116,19 +131,26 @@ public class GameManager {
 
         long startTime = System.currentTimeMillis();
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
-        game.getBoard().rotateBoard(false);
-        //game.getBoard().printBoard();
+        game.getBoard().rotateCCWAndFlipBoard();
         rotated = true;
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
         long endTime = System.currentTimeMillis();
         System.out.println("Moves generated in: " + (endTime - startTime) + "ms.");
 
-        ArrayList<Move> sortedMoves = new ArrayList<>(validMoves);
+        ArrayList<Move> sortedMoves = new ArrayList<>();
+        // Iterate the moves
+        for (Move move : validMoves) {
+            // Add unique moves to sortedMoves
+            if (!sortedMoves.contains(move)) {
+                sortedMoves.add(move);
+            }
+        }
+        // Then sort the list and return it
         Collections.sort(sortedMoves);
         return sortedMoves;
     }
 
-    private void fetchHorizontalMoves(Game game, WordTrie trie, HashMap<Character, Integer> charScores, boolean rotated, ExecutorService pool, Set validMoves) {
+    private void fetchHorizontalMoves(Game game, WordTrie trie, HashMap<Character, Integer> charScores, boolean rotated, ExecutorService pool, Set<Move> validMoves) {
         /*
         Iterate board
         For every row on the board, create a runnable
@@ -146,25 +168,18 @@ public class GameManager {
         // Check if this is the first move of the game. If center tile is empty, we set this as anchorTile
         if (game.getBoard().getTile(7, 7).getLetter().equals("_")) {
             for (String word : rackWords) {
-                // If all tiles are used, 40 bonus points are awarded
+                // If all tiles are used, 40 bonus points are awarded. Because this is the first move, we know for sure we have used all tiles if the word is 7 long.
                 int bingo = 0;
                 if (word.length() == 7) {
                     bingo += 40;
                 }
                 Move move = new Move(new Word(word));
                 move.setScore(addScore(7, 7, false, word, charScores, game.getBoard()) + bingo);
-                move.setEnds(new Tile(7, 6 + word.length()));
-                move.setStarts(new Tile(7, 7));
                 move.addWord(word);
-                int row = 7;
                 int column = 7;
                 for (char character : word.toCharArray()) {
-                    // If the rack doesn't contain the character, it's a wildcard character
-                    if (!rack.contains(String.valueOf(character))) {
-                        move.addTile(row, column, String.valueOf(character), true);
-                    } else {
-                        move.addTile(row, column, String.valueOf(character), false);
-                    }
+                    move.addTile(7, column, String.valueOf(character),
+                            !rack.contains(String.valueOf(character))); // If the rack doesn't contain the character, it's a wildcard character thus true
                     column++;
                 }
                 validMoves.add(move);

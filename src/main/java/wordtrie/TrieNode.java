@@ -25,23 +25,6 @@ public class TrieNode {
         isWord = false;
     }
 
-    @Override
-    public TrieNode clone() {
-        TrieNode newNode = new TrieNode();
-        newNode.children = deepCopyArray(this.children);
-        return newNode;
-    }
-
-    public TrieNode[] deepCopyArray(TrieNode[] origArray) {
-        TrieNode[] newArray = new TrieNode[origArray.length];
-        for (int i = 0; i < 29; i++) {
-            if (origArray[i] != null) {
-                newArray[i] = origArray[i].clone();
-            }
-        }
-        return newArray;
-    }
-
     /**
      * Constructor for child nodes.
      *
@@ -140,11 +123,12 @@ public class TrieNode {
      */
     protected List<Word> getWords(ArrayList<String> rack, int suffixLimit) {
         //Create a list to return
-        List<Word> list = new ArrayList();
+        List<Word> list = new ArrayList<>();
 
         //If this node represents a word, add it to list as a Word object
         if (isWord) {
-            list.add(new Word(toString()));
+            // Also include the remaining rack
+            list.add(new Word(toString(), rack));
         }
 
         //If current node has any children, recursive calls will be made to fetch the words that can be formed with our rack
@@ -152,12 +136,12 @@ public class TrieNode {
             // Iterate all node children
             for (TrieNode child : children) {
                 // Try to fetch words which are lower in the hierarchy than the current iterated child with only characters from our rack
-                if (child != null && rack.contains(String.valueOf(child.character))) {
+                if (child != null && rack.contains(String.valueOf(child.getChar()))) {
                     // Success! Found a valid child that represents a character in our rack
                     // Create a temporary duplicate list of our rack
                     ArrayList<String> tmpRack = new ArrayList<>(rack);
                     // Remove our used character from the temporary rack
-                    tmpRack.remove(String.valueOf(child.character));
+                    tmpRack.remove(String.valueOf(child.getChar()));
                     // Keep going deeper in the recursive function with our temporary rack and with the limit decreased by 1
                     // Only go deeper if the suffixLimit hasn't reached 0 yet though.
                     if (suffixLimit > 0) {
