@@ -54,7 +54,7 @@ public final class Game {
                 this.enemy_score = playerJson.getInt("score");
                 this.enemy_position = playerJson.getInt("position");
                 this.enemy_username = playerJson.getString("username");
-                this.enemy_fullname = ((playerJson.getString("fb_first_name") != null) ? playerJson.getString("fb_first_name") + " " + playerJson.getString("fb_last_name") : "");
+                this.enemy_fullname = (!playerJson.isNull("fb_first_name") ? playerJson.getString("fb_first_name") + " " + playerJson.getString("fb_last_name") : "");
                 this.enemy_id = playerJson.getLong("id");
             }
         }
