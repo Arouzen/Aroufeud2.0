@@ -226,13 +226,13 @@ public class Worker implements Runnable {
 
         // Add word to move
         move.addWord(word.getWord());
-
-        // Calculate the score of this word. Add it to moveScore.
-        moveScore += addScore(row, column, true, rotated, word.getWord(), charScores, board, rack);
-
+        
         // Move column to first character of the full word
         column = column - left.length();
 
+        // Calculate the score of this word. Add it to moveScore.
+        moveScore += addScore(row, column, true, rotated, word.getWord(), charScores, board, rack);
+        
         // Iterate all characters in the move we want to make to find if any Y axis words was formed if this character is placed on the board.
         // Also make sure that a move was made. If every character was already on the board, nothing was placed, thus the move is invalid.
         boolean moveMade = false;
@@ -323,16 +323,10 @@ public class Worker implements Runnable {
         // Move column to first character of the full word
         column = column - word.getWord().length();
         Tile startTile = new Tile(row, column);
-        Tile curTile = null;
         int wordIndex = 0;
         // Add the tiles we are trying to place to the move
         for (int col = startTile.getColumn(); col < startTile.getColumn() + word.getWord().length(); col++) {
-            try {
-                curTile = board.getTile(startTile.getRow(), col);
-            } catch (Exception e) {
-                System.err.println("Error looking for tile word: " + startTile + "\nActual values, (row,col): " + startTile.getRow() + "," + col);
-                e.printStackTrace();
-            }
+            Tile curTile = board.getTile(startTile.getRow(), col);
             // Proceed if this col is empty on the board, in other words we are trying to place something here
             if (curTile.getLetter().equals("_")) {
                 int _col = curTile.getColumn();
