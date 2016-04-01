@@ -137,7 +137,7 @@ public class GameManager {
         rotated = true;
         fetchHorizontalMoves(game, trie, charScores, rotated, pool, validMoves);
         long endTime = System.currentTimeMillis();
-        System.out.println("Moves generated in: " + (endTime - startTime) + "ms.");
+        System.out.println("Solutions generated in: " + (endTime - startTime) + "ms.");
 
         ArrayList<Move> sortedMoves = new ArrayList<>();
         // Iterate the moves
@@ -197,11 +197,6 @@ public class GameManager {
 
             try {
                 pool.invokeAll(callables);
-                if (rotated) {
-                    System.out.println("Vertical solutions found");
-                } else {
-                    System.out.println("Horizontal solutions found");
-                }
             } catch (Exception ex) {
                 System.out.println("Something went wrong when invoking the callables.");
             }

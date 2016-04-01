@@ -21,15 +21,18 @@ import wordtrie.WordTrie;
 public final class Aroufeud {
 
     private final SessionManager sm;
-    private final WordTrie en_trie;
-    private final WordTrie sv_trie;
-    private final HashMap<Character, Integer> sv_charScores;
-    private final HashMap<Character, Integer> en_charScores;
-    private final ExecutorService pool;
+    private WordTrie en_trie;
+    private WordTrie sv_trie;
+    private HashMap<Character, Integer> sv_charScores;
+    private HashMap<Character, Integer> en_charScores;
+    private ExecutorService pool;
 
     public Aroufeud() {
         // Initiate the sessionManager
         sm = new SessionManager();
+    }
+
+    public void initialize() {
         // Initiate the tries and scoreMaps
         en_trie = generateWordTrie("en");
         sv_trie = generateWordTrie("sv");

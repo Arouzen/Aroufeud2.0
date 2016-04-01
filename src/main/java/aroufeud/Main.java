@@ -43,6 +43,7 @@ public class Main {
             if (response != null && response.getString("status").equals("success")) {
                 // Auth successful
                 System.out.println("Authentication successful!");
+                aroufeud.initialize();
                 // Init the game manager
                 GameManager gm = new GameManager(aroufeud);
                 System.out.println("Play semi- or fully automatic? s/f");
