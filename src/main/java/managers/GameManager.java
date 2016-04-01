@@ -108,7 +108,7 @@ public class GameManager {
                         }
                         if (response != null) {
                             if (response.get("status").equals("success")) {
-                                System.out.println("Success!");
+                                //System.out.println("Success!");
                                 JSONObject content = (JSONObject) response.get("content");
                                 System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
                                 break;

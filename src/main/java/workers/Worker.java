@@ -32,7 +32,7 @@ public class Worker implements Runnable {
         this.rackWords = new ArrayList<>(rackWords);
         this.rotated = rotated;
         this.horizontalMoves = horizontalMoves;
-        this.trie = trie;//new WordTrie(trie);
+        this.trie = trie;
         this.charScores = charScores;
         this.rack = rack;
     }
@@ -266,25 +266,7 @@ public class Worker implements Runnable {
                 // If either above or below is not empty, we have formed a Y-axis word
                 if ((above + below).length() > 0) {
                     // Validate and calculate the score of the Y-axis word
-                    String yaxisWord;
-
-                    // If we are in a rotated board or not though, is highly relevant how we see the connected yaxis-word
-                    // Because when we rotate counterclockwise, the validation of any Y-axis words that may be formed is inverted.
-                    // Words that gets formed from top -> bottom in the rotated board is actually words that gets formed from bottom -> top on the unrotated board
-                    // 
-                    // A word that was made C
-                    //                      A
-                    //                      T in the rotated view, is thus actually TAC, not CAT, when we rotate back clockwise.
-                    // 
-                    // When the board is rotated, we invert above and below, and form the word by adding the strings in the following order; below + char + above
-                    // When the board is not rotated, we form the word by adding the strings in the following order; above + char + below
-                    /*if (rotated) {
-                        above = new StringBuilder(above).reverse().toString();
-                        below = new StringBuilder(below).reverse().toString();
-                        yaxisWord = below + word.getWord().charAt(i) + above;
-                    } else {*/
-                    yaxisWord = above + word.getWord().charAt(i) + below;
-                    /*}*/
+                    String yaxisWord = above + word.getWord().charAt(i) + below;
 
                     // Check if the formed word is valid. If no, return null. This move is invalid. 
                     if (!trie.isWord(yaxisWord)) {
