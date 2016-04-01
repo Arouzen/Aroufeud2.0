@@ -54,9 +54,10 @@ public class GameManager {
         for (Game game : gameList) {
             if (game.getCurrent_player() == game.getMy_position() && game.getEnd_game() == 0) {
                 System.out.println("==========");
-                System.out.println(game.getMy_username() + " VS " + game.getEnemy_username());
+                String enemy = (game.getEnemy_fullname().isEmpty() ? game.getEnemy_username() : game.getEnemy_fullname());
+                System.out.println(game.getMy_username() + " VS " + enemy);
                 System.out.println(game.getMy_username() + "s score: " + game.getMy_score());
-                System.out.println(game.getEnemy_username() + "s score: " + game.getEnemy_score());
+                System.out.println(enemy + "s score: " + game.getEnemy_score());
                 System.out.println("Calculating moves...");
                 List<Move> validMoves = generateMoves(game, (game.getRuleset() == 0 ? en_trie : sv_trie), (game.getRuleset() == 0 ? en_charScores : sv_charScores), pool);
                 Move chosenMove;

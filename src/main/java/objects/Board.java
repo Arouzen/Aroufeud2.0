@@ -2,7 +2,6 @@
  */
 package objects;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import org.json.JSONArray;
 
@@ -10,7 +9,7 @@ import org.json.JSONArray;
  *
  * @author arouz
  */
-public final class Board implements Serializable {
+public final class Board {
 
     ArrayList<ArrayList<Tile>> board;
 

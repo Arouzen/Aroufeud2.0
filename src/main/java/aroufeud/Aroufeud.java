@@ -18,7 +18,7 @@ public class Aroufeud {
         sm = new SessionManager();
     }
 
-    public boolean login(String email, String password) throws Exception {
+    public JSONObject login(String email, String password) throws Exception {
         return sm.doLogin(email, password);
     }
 

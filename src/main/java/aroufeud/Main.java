@@ -7,13 +7,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import managers.GameManager;
 import objects.Game;
+import org.json.JSONObject;
 
 /**
  *
  * @author arouz
  */
 public class Main {
-
+    
     public static void main(String[] args) {
         System.out.println("Welcome to Aroufued2.0!");
         System.out.println("Please authenticate to the WordFeud servers.");
@@ -22,8 +23,6 @@ public class Main {
             Scanner scan = new Scanner(System.in);
             System.out.print("Email: ");
             String my_email = scan.next();
-            System.out.print("Username: ");
-            String my_username = scan.next();
             System.out.print("Password: ");
             Console cons = System.console();
             String password;
@@ -35,15 +34,14 @@ public class Main {
             System.out.println("");
 
             // Try to authenticate
-            boolean success;
+            JSONObject response = null;
             Aroufeud aroufeud = new Aroufeud();
             try {
-                success = aroufeud.login(my_email, password);
+                response = aroufeud.login(my_email, password);
             } catch (Exception ex) {
                 ex.printStackTrace();
-                success = false;
             }
-            if (success) {
+            if (response != null && response.getString("status").equals("success")) {
                 // Auth successful
                 // Init the game manager
                 GameManager gm = new GameManager(aroufeud.sm);
@@ -59,7 +57,7 @@ public class Main {
                 while (true) {
                     try {
                         // Parse account status, parse invites, accept english/swedish normal game invites, decline the rest, parse the games, then play the games where it's your turn
-                        ArrayList<Game> gameList = aroufeud.parseStatus(my_username);
+                        ArrayList<Game> gameList = aroufeud.parseStatus(((JSONObject) response.get("content")).getString("username"));
                         gm.playGames(gameList, fullyAuto, pool);
                         System.out.println("----------");
                         System.out.println("Sleeping for 60seconds...");

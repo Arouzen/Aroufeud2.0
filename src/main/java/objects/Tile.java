@@ -1,12 +1,10 @@
 package objects;
 
-import java.io.Serializable;
-
 /**
  *
  * @author arouz
  */
-public class Tile implements Serializable {
+public class Tile {
 
     private int column;
     private int row;

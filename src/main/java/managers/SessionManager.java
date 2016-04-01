@@ -19,19 +19,12 @@ public class SessionManager {
         httpManager = new HTTPManager();
     }
 
-    public boolean doLogin(String email, String pass) throws Exception {
+    public JSONObject doLogin(String email, String pass) throws Exception {
         String jsonData = "{"
                 + "\"password\": \"" + encryptPassword(pass) + "\","
                 + "\"email\": \"" + email + "\""
                 + "}";
-        JSONObject response = httpManager.postJson("/user/login/email/", jsonData);
-
-        if (response.get("status").equals("success")) {
-            return true;
-        } else {
-            System.out.println(((JSONObject) response.get("content")).get("type"));
-            return false;
-        }
+        return httpManager.postJson("/user/login/email/", jsonData);
     }
 
     public JSONObject getStatus() throws Exception {
