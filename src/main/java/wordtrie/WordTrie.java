@@ -22,9 +22,6 @@ public class WordTrie {
         root = new TrieNode();
     }
 
-    /*public WordTrie(WordTrie wordTrie) {
-        this.root = wordTrie.root.clone();
-    }*/
     /**
      * Adds a word to the Trie
      *

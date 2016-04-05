@@ -133,19 +133,19 @@ public class TrieNode {
 
         //If current node has any children, recursive calls will be made to fetch the words that can be formed with our rack
         if (!isLeaf) {
-            // Iterate all node children
-            for (TrieNode child : children) {
-                // Try to fetch words which are lower in the hierarchy than the current iterated child with only characters from our rack
-                if (child != null && rack.contains(String.valueOf(child.getChar()))) {
-                    // Success! Found a valid child that represents a character in our rack
+            // Iterate the rack
+            for (String rackChar : rack) {
+                // Check if the current rackChar may form a word with this node as a parent
+                if (getNode(rackChar.charAt(0)) != null) {
+                    // Success!
                     // Create a temporary duplicate list of our rack
                     ArrayList<String> tmpRack = new ArrayList<>(rack);
                     // Remove our used character from the temporary rack
-                    tmpRack.remove(String.valueOf(child.getChar()));
+                    tmpRack.remove(rackChar);
                     // Keep going deeper in the recursive function with our temporary rack and with the limit decreased by 1
                     // Only go deeper if the suffixLimit hasn't reached 0 yet though.
                     if (suffixLimit > 0) {
-                        list.addAll(child.getWords(tmpRack, suffixLimit - 1));
+                        list.addAll(getNode(rackChar.charAt(0)).getWords(tmpRack, suffixLimit - 1));
                     }
                 }
             }
