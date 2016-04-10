@@ -67,9 +67,9 @@ public class GameManager {
                 if (!fullyAutomatic) {
                     System.out.println("Type the index of the move you want me to play for you!");
                     int i = 0;
-                    // If over 10 valid moves, strip it down to 10
-                    if (validMoves.size() >= 10) {
-                        validMoves = validMoves.subList(0, 10);
+                    // If over 15 valid moves, strip it down to 15
+                    if (validMoves.size() >= 15) {
+                        validMoves = validMoves.subList(0, 15);
                     }
                     for (Move move : validMoves) {
                         System.out.println("[" + i + "] " + move.getWord().getWord() + " for " + move.getScore() + " points.");
@@ -84,21 +84,24 @@ public class GameManager {
                         } catch (InputMismatchException ex) {
                         }
                     }
-                    chosenMove = validMoves.get(choice);
-                    JSONObject response = null;
-                    try {
-                        response = sm.playMove(game.getId(), game.getRuleset(), chosenMove.getTiles(), chosenMove.getWords());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                    if (response != null) {
-                        if (response.get("status").equals("success")) {
-                            //System.out.println("Success!");
-                            JSONObject content = (JSONObject) response.get("content");
-                            System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
-                        } else {
-                            System.out.println(response.toString());
-                            System.out.println(chosenMove);
+                    // -1 to skip play (debug purposes)
+                    if (choice != -1) {
+                        chosenMove = validMoves.get(choice);
+                        JSONObject response = null;
+                        try {
+                            response = sm.playMove(game.getId(), game.getRuleset(), chosenMove.getTiles(), chosenMove.getWords());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        if (response != null) {
+                            if (response.get("status").equals("success")) {
+                                //System.out.println("Success!");
+                                JSONObject content = (JSONObject) response.get("content");
+                                System.out.println("I played " + content.get("main_word") + " for " + content.get("points") + " points for you. :)");
+                            } else {
+                                System.out.println(response.toString());
+                                System.out.println(chosenMove);
+                            }
                         }
                     }
                 } else {

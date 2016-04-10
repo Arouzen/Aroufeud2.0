@@ -97,7 +97,7 @@ public class Worker implements Runnable {
                             word.setAnchorPosition(0);
                             Move move = validateAndCalcMoveScore(word, game.getBoard(), charScores, trie);
                             if (move != null) {
-                                if (word.getWord().length() == 7) {
+                                if (rackWord.length() == 7) {
                                     // If all tiles are used, 40 bonus points are awarded
                                     move.setScore(move.getScore() + 40);
                                 }
@@ -158,9 +158,9 @@ public class Worker implements Runnable {
                         // Also takes account of any multipliers on the board. 
                         // Returns null if a invalid word was formed on the board with this move.
                         Move move = validateAndCalcMoveScore(word, game.getBoard(), charScores, trie);
-                        // Check if we used the entire rack
+                        // Check if we used the entire rack, and if the rack was 7 tiles originaly
                         if (move != null) {
-                            if (move.getWord().getRack().isEmpty()) {
+                            if (move.getWord().getRack().isEmpty() && rack.size() == 7) {
                                 // If all tiles are used, 40 bonus points are awarded
                                 move.setScore(move.getScore() + 40);
                             }
@@ -307,13 +307,22 @@ public class Worker implements Runnable {
         column = column - word.getWord().length();
         Tile startTile = new Tile(row, column);
         int wordIndex = 0;
+        // Create a temporary rack to check move tiles against
+        ArrayList<String> tmpRack = new ArrayList<>(rack);
         // Add the tiles we are trying to place to the move
         for (int col = startTile.getColumn(); col < startTile.getColumn() + word.getWord().length(); col++) {
             Tile curTile = board.getTile(startTile.getRow(), col);
             // Proceed if this col is empty on the board, in other words we are trying to place something here
             if (curTile.getLetter().equals("_")) {
-                move.addTile((rotated ? curTile.getColumn() : curTile.getRow()), (rotated ? curTile.getRow() : curTile.getColumn()), String.valueOf(word.getWord().charAt(wordIndex)),
-                        !rack.contains(String.valueOf(word.getWord().charAt(wordIndex)))); // Check if the wordIndex char exists in the rack, if not this has to be a wildcard
+                boolean wildcard = false;
+                // Check if the wordIndex char exists in the rack, if not this has to be a wildcard
+                if (!tmpRack.contains(String.valueOf(word.getWord().charAt(wordIndex)))) {
+                    wildcard = true;
+                } else {
+                    // Remove the char from the tmpRack
+                    tmpRack.remove(String.valueOf(word.getWord().charAt(wordIndex)));
+                }
+                move.addTile((rotated ? curTile.getColumn() : curTile.getRow()), (rotated ? curTile.getRow() : curTile.getColumn()), String.valueOf(word.getWord().charAt(wordIndex)), wildcard);
             }
             wordIndex++;
         }

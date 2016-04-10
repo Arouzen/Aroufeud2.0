@@ -135,8 +135,19 @@ public class TrieNode {
         if (!isLeaf) {
             // Iterate the rack
             for (String rackChar : rack) {
-                // Check if the current rackChar may form a word with this node as a parent
-                if (getNode(rackChar.charAt(0)) != null) {
+                // Wildard
+                if (rackChar.length() == 0) {
+                    ArrayList<String> tmpRack = new ArrayList<>(rack);
+                    // Remove the wildcard from tmpRack
+                    tmpRack.remove(rackChar);
+                    // Keep going deeper in the recursive function with every child from curNode if suffixLimit > 0
+                    if (suffixLimit > 0) {
+                        for (TrieNode wildcardChild : getNodes()) {
+                            list.addAll(wildcardChild.getWords(tmpRack, suffixLimit - 1));
+                        }
+                    }
+                } // Check if the current rackChar may form a word with this node as a parent
+                else if (getNode(rackChar.charAt(0)) != null) {
                     // Success!
                     // Create a temporary duplicate list of our rack
                     ArrayList<String> tmpRack = new ArrayList<>(rack);
